@@ -1,0 +1,319 @@
+<% content_for :title, "회원가입 - Legal Scheduler AI" %>
+
+<style>
+  :root {
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --success: #22C55E;
+    --danger: #EF4444;
+    --gray-900: #111827;
+    --gray-700: #374151;
+    --gray-500: #6B7280;
+    --gray-300: #D1D5DB;
+    --gray-100: #F3F4F6;
+    --white: #FFFFFF;
+  }
+
+  body {
+    background: var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  .signup-container {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .logo h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 8px;
+  }
+
+  .logo p {
+    font-size: 14px;
+    color: var(--gray-500);
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-500);
+    font-size: 18px;
+  }
+
+  .validation-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+  }
+
+  .input {
+    width: 100%;
+    padding: 12px 40px 12px 40px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  .input.valid {
+    border-color: var(--success);
+  }
+
+  .input.invalid {
+    border-color: var(--danger);
+  }
+
+  .password-strength {
+    margin-top: 8px;
+    height: 4px;
+    background: var(--gray-300);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .password-strength-bar {
+    height: 100%;
+    width: 0;
+    transition: width 0.3s, background 0.3s;
+  }
+
+  .password-strength-bar.weak {
+    width: 33%;
+    background: var(--danger);
+  }
+
+  .password-strength-bar.medium {
+    width: 66%;
+    background: #F59E0B;
+  }
+
+  .password-strength-bar.strong {
+    width: 100%;
+    background: var(--success);
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-dark);
+  }
+
+  .btn-primary:active {
+    transform: translateY(1px);
+  }
+
+  .links {
+    text-align: center;
+    margin-top: 24px;
+  }
+
+  .links a {
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+
+  .links a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
+
+  .alert {
+    background: #FEE2E2;
+    color: #991B1B;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+
+  .error-messages {
+    background: #FEE2E2;
+    color: #991B1B;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+
+  .error-messages ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  @media (max-width: 480px) {
+    .signup-container {
+      padding: 32px 24px;
+    }
+  }
+</style>
+
+<div class="signup-container">
+  <div class="logo">
+    <h1>Legal Scheduler AI</h1>
+    <p>새로운 계정 만들기</p>
+  </div>
+
+  <% if @user.errors.any? %>
+    <div class="error-messages">
+      <strong><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</strong>
+      <ul>
+        <% @user.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= form_with model: @user, url: registrations_path, method: :post do |form| %>
+    <div class="form-group">
+      <%= form.label :name, "이름", class: "label" %>
+      <div class="input-wrapper">
+        <span class="input-icon">👤</span>
+        <%= form.text_field :name,
+            class: "input",
+            placeholder: "홍길동",
+            required: true,
+            autofocus: true %>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :email_address, "이메일", class: "label" %>
+      <div class="input-wrapper">
+        <span class="input-icon">✉️</span>
+        <%= form.email_field :email_address,
+            class: "input",
+            placeholder: "example@lawfirm.com",
+            required: true %>
+        <span class="validation-icon" style="display: none;">✅</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :password, "비밀번호", class: "label" %>
+      <div class="input-wrapper">
+        <span class="input-icon">🔒</span>
+        <%= form.password_field :password,
+            id: "password",
+            class: "input",
+            placeholder: "8자 이상 입력",
+            required: true %>
+      </div>
+      <div class="password-strength">
+        <div class="password-strength-bar"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :password_confirmation, "비밀번호 확인", class: "label" %>
+      <div class="input-wrapper">
+        <span class="input-icon">🔒</span>
+        <%= form.password_field :password_confirmation,
+            id: "password-confirm",
+            class: "input",
+            placeholder: "비밀번호 재입력",
+            required: true %>
+        <span class="validation-icon" id="confirm-icon" style="display: none;">✅</span>
+      </div>
+    </div>
+
+    <%= form.submit "회원가입", class: "btn-primary" %>
+
+    <div class="links">
+      <%= link_to "이미 계정이 있으신가요? 로그인", new_session_path %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  // Password strength indicator
+  const passwordInput = document.getElementById('password');
+  const strengthBar = document.querySelector('.password-strength-bar');
+
+  passwordInput.addEventListener('input', (e) => {
+    const value = e.target.value;
+    const length = value.length;
+
+    if (length === 0) {
+      strengthBar.className = 'password-strength-bar';
+    } else if (length < 8) {
+      strengthBar.className = 'password-strength-bar weak';
+    } else if (length < 12) {
+      strengthBar.className = 'password-strength-bar medium';
+    } else {
+      strengthBar.className = 'password-strength-bar strong';
+    }
+  });
+
+  // Password confirmation validation
+  const confirmInput = document.getElementById('password-confirm');
+  const confirmIcon = document.getElementById('confirm-icon');
+
+  confirmInput.addEventListener('input', (e) => {
+    if (e.target.value === passwordInput.value && e.target.value.length > 0) {
+      e.target.classList.add('valid');
+      e.target.classList.remove('invalid');
+      confirmIcon.style.display = 'block';
+    } else {
+      e.target.classList.remove('valid');
+      e.target.classList.add('invalid');
+      confirmIcon.style.display = 'none';
+    }
+  });
+</script>
