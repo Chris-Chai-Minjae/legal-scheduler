@@ -5,7 +5,7 @@ class SchedulesController < ApplicationController
   layout "dashboard"
 
   before_action :resume_session
-  before_action :set_schedule, only: [:show, :cancel]
+  before_action :set_schedule, only: [:show, :edit, :update, :destroy, :cancel]
 
   # GET /schedules
   # Displays schedule list with filtering and pagination
@@ -74,6 +74,27 @@ class SchedulesController < ApplicationController
     @calendar = @schedule.calendar
   end
 
+  # GET /schedules/:id/edit
+  def edit
+    @calendar = @schedule.calendar
+  end
+
+  # PATCH/PUT /schedules/:id
+  def update
+    if @schedule.update(schedule_params)
+      redirect_to schedule_path(@schedule), notice: "일정이 수정되었습니다."
+    else
+      @calendar = @schedule.calendar
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /schedules/:id
+  def destroy
+    @schedule.destroy
+    redirect_to schedules_path, notice: "일정이 삭제되었습니다."
+  end
+
   private
 
   def set_schedule
@@ -83,5 +104,9 @@ class SchedulesController < ApplicationController
       .find(params[:id])
   rescue ActiveRecord::RecordNotFound
     redirect_to schedules_path, alert: "일정을 찾을 수 없습니다."
+  end
+
+  def schedule_params
+    params.require(:schedule).permit(:title, :scheduled_date, :case_number, :case_name)
   end
 end

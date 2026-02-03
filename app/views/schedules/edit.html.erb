@@ -1,0 +1,148 @@
+<%# Schedule Edit Page View %>
+
+<% content_for :title, "일정 수정" %>
+
+<div class="header">
+  <h1>일정 수정</h1>
+  <%= link_to "← 목록으로", schedules_path, class: "btn-secondary" %>
+</div>
+
+<div class="section">
+  <%= form_with model: @schedule, local: true, class: "form" do |f| %>
+    <% if @schedule.errors.any? %>
+      <div class="error-messages">
+        <h4><%= pluralize(@schedule.errors.count, "error") %> 수정 필요:</h4>
+        <ul>
+          <% @schedule.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="form-group">
+      <%= f.label :title, "제목" %>
+      <%= f.text_field :title, class: "form-control", required: true %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :scheduled_date, "예정일" %>
+      <%= f.date_field :scheduled_date, class: "form-control", required: true %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :case_number, "사건번호" %>
+      <%= f.text_field :case_number, class: "form-control" %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :case_name, "사건명" %>
+      <%= f.text_field :case_name, class: "form-control" %>
+    </div>
+
+    <div class="form-info">
+      <p><strong>캘린더:</strong> <%= @calendar.summary %></p>
+      <p><strong>원본 변론일:</strong> <%= l(@schedule.original_date, format: :long) %></p>
+      <p><strong>현재 상태:</strong> <%= @schedule.status_text %></p>
+    </div>
+
+    <div class="form-actions">
+      <%= f.submit "저장", class: "btn-primary" %>
+      <%= link_to "취소", schedule_path(@schedule), class: "btn-secondary" %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .form {
+    max-width: 600px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--gray-700);
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 14px;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+
+  .form-info {
+    background: var(--gray-50);
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  .form-info p {
+    margin: 4px 0;
+    color: var(--gray-600);
+    font-size: 14px;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .btn-primary {
+    padding: 10px 20px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-dark);
+  }
+
+  .btn-secondary {
+    padding: 10px 20px;
+    background: white;
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .error-messages {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .error-messages h4 {
+    color: #dc2626;
+    margin: 0 0 8px 0;
+  }
+
+  .error-messages ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #dc2626;
+  }
+</style>

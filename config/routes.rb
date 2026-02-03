@@ -41,7 +41,7 @@ Rails.application.routes.draw do
   end
 
   # Schedules list and detail (T4.2)
-  resources :schedules, only: [:index, :show] do
+  resources :schedules, only: [:index, :show, :edit, :update, :destroy] do
     collection do
       post :sync  # Google Calendar 동기화
     end

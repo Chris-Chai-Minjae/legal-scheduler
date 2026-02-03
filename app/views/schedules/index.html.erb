@@ -90,22 +90,27 @@
                 <div class="actions">
                   <%= link_to "👁️", schedule_path(schedule),
                       class: "btn-icon",
-                      title: "상세보기",
-                      data: { turbo: false } %>
+                      title: "상세보기" %>
+                  <% unless schedule.cancelled? %>
+                    <%= link_to "✏️", edit_schedule_path(schedule),
+                        class: "btn-icon",
+                        title: "수정" %>
+                    <%= button_to "🗑️", schedule_path(schedule),
+                        method: :delete,
+                        class: "btn-icon",
+                        title: "삭제",
+                        form: { data: { turbo_confirm: "정말 삭제하시겠습니까?" } } %>
+                  <% end %>
                   <% if schedule.pending? %>
                     <%= button_to "✅", approve_dashboard_schedule_path(schedule),
                         method: :post,
-                        class: "btn-icon",
-                        title: "승인",
-                        data: { turbo: false } %>
+                        class: "btn-icon btn-approve-small",
+                        title: "승인" %>
                     <%= button_to "❌", reject_dashboard_schedule_path(schedule),
                         method: :post,
-                        class: "btn-icon",
+                        class: "btn-icon btn-reject-small",
                         title: "거부",
-                        data: { turbo: false, confirm: "정말 거부하시겠습니까?" } %>
-                  <% else %>
-                    <span class="btn-icon disabled" title="수정">✏️</span>
-                    <span class="btn-icon disabled" title="삭제">🗑️</span>
+                        form: { data: { turbo_confirm: "정말 거부하시겠습니까?" } } %>
                   <% end %>
                 </div>
               </td>
