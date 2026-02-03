@@ -1,0 +1,16 @@
+# @TASK T5.2 - Settings fixtures for schedule creator testing
+# @SPEC REQ-SET-01, REQ-SCHED-01
+
+one:
+  user: one
+  alert_time: "08:00"
+  max_per_week: 3
+  lead_days: 14
+  exclude_weekends: true
+
+two:
+  user: two
+  alert_time: "09:00"
+  max_per_week: 2
+  lead_days: 7
+  exclude_weekends: false

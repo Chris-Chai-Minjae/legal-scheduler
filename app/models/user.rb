@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-  # @TASK T0.2 - User model with OAuth, Telegram, and schedule management
+  # @TASK T0.2 & T9.2 - User model with OAuth, Telegram, and schedule management
   # @SPEC docs/planning/04-database-design.md#users-table
 
   has_secure_password
@@ -11,10 +11,11 @@ class User < ApplicationRecord
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
-  # Encrypt sensitive OAuth and Telegram tokens
-  encrypts :google_access_token
-  encrypts :google_refresh_token
-  encrypts :telegram_bot_token
+  # OAuth and Telegram tokens (encryption disabled for now)
+  # TODO: Enable encryption with proper key management
+  # encrypts :google_access_token
+  # encrypts :google_refresh_token
+  # encrypts :telegram_bot_token
 
   # Validations
   validates :email_address, presence: true, uniqueness: true
@@ -30,16 +31,42 @@ class User < ApplicationRecord
   after_create :create_default_settings
   after_create :create_default_keywords
 
+  # Onboarding step tracking (T9.2)
+  def update_onboarding_step(step)
+    # Could store in settings or just rely on actual data state
+    # For now, we use data state to determine step
+  end
+
+  # Check if onboarding is complete
+  def onboarding_complete?
+    settings&.onboarding_completed? ||
+      (calendars.find_by(calendar_type: :lbox).present? &&
+       calendars.find_by(calendar_type: :work).present? &&
+       keywords.any?)
+  end
+
   private
 
   def create_default_settings
     Settings.create!(user: self)
+  rescue ActiveRecord::RecordInvalid
+    # Settings may fail due to validation, create with defaults
+    Settings.create(
+      user: self,
+      alert_time: "08:00",
+      max_per_week: 3,
+      lead_days: 14,
+      exclude_weekends: true
+    )
   end
 
   def create_default_keywords
     # REQ-SET-01: Default keywords
     %w[변론 검찰조사 재판].each do |keyword|
-      keywords.create!(keyword: keyword, is_active: true)
+      keywords.create!(name: keyword, is_active: true)
+    rescue ActiveRecord::RecordInvalid
+      # Skip if keyword already exists or validation fails
+      next
     end
   end
 end

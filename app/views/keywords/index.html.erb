@@ -1,0 +1,100 @@
+<%# @TASK T9.2 - Keywords Settings Page %>
+<%# @SPEC Based on w07-settings-keywords.html from Stitch design %>
+
+<% content_for :title, "키워드 설정 - Legal Scheduler AI" %>
+
+<div class="settings-header">
+  <h1>키워드 설정</h1>
+  <p>LBOX 캘린더에서 감지할 키워드를 설정하세요</p>
+</div>
+
+<!-- Settings Tabs -->
+<%= render "shared/settings_tabs" %>
+
+<!-- Keyword Management -->
+<div class="section" style="padding: 32px;">
+  <h2 class="section-title">키워드 관리</h2>
+  <p class="section-subtitle">일정 제목에 포함된 키워드를 감지하여 자동으로 서면 작성 일정을 생성합니다</p>
+
+  <!-- Keyword Input -->
+  <%= form_with url: keywords_path, method: :post,
+      data: { controller: "keyword-input", turbo_frame: "keywords_list" } do |f| %>
+    <div class="keyword-input-group">
+      <%= f.text_field :name,
+          class: "input",
+          placeholder: "새 키워드 입력... (예: 변론, 재판, 검찰조사)",
+          data: { keyword_input_target: "input", action: "keypress->keyword-input#handleKeypress" } %>
+      <%= f.submit "추가", class: "btn-add" %>
+    </div>
+  <% end %>
+
+  <!-- Current Keywords -->
+  <%= turbo_frame_tag "keywords_list" do %>
+    <% if @keywords.any? %>
+      <div class="keyword-chips" style="margin-bottom: 24px;">
+        <% @keywords.each do |keyword| %>
+          <span class="chip">
+            <%= keyword.name %>
+            <%= button_to keyword_path(keyword),
+                method: :delete,
+                class: "chip-remove",
+                style: "background: none; border: none; padding: 0; font-size: 18px; font-weight: bold; cursor: pointer; color: inherit;",
+                data: { turbo_frame: "keywords_list", turbo_confirm: "이 키워드를 삭제하시겠습니까?" } do %>
+              &times;
+            <% end %>
+          </span>
+        <% end %>
+      </div>
+    <% else %>
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🔑</div>
+        <p>아직 키워드가 없습니다</p>
+        <%= button_to "기본 키워드 추가하기 (변론, 검찰조사, 재판)",
+            keywords_path(add_defaults: true),
+            method: :post,
+            class: "btn btn-secondary",
+            style: "margin-top: 16px;",
+            data: { turbo_frame: "keywords_list" } %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <!-- Info Box -->
+  <div class="info-box">
+    <div class="info-icon">💡</div>
+    <div class="info-text">
+      이 키워드가 포함된 LBOX 캘린더 일정이 감지되면 서면 작성 일정이 자동으로 생성됩니다.
+      <br>
+      예: "2024나23244 가습기 사건 <strong>변론</strong>기일" → "가습기 사건 서면작성" 일정 생성
+    </div>
+  </div>
+</div>
+
+<style>
+  .settings-header {
+    margin-bottom: 24px;
+  }
+
+  .settings-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+  }
+
+  .settings-header p {
+    font-size: 14px;
+    color: var(--gray-500);
+  }
+
+  .keyword-input-group {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .keyword-input-group .input {
+    flex: 1;
+  }
+</style>

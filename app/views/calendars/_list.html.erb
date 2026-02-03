@@ -1,0 +1,26 @@
+<%# @TASK T2.1 - Calendars list partial %>
+<%# @SPEC REQ-CAL-01: Calendar list with caching %>
+
+<div class="bg-white shadow-sm rounded-lg overflow-hidden">
+  <% if calendars.any? %>
+    <ul role="list" class="divide-y divide-gray-200">
+      <% calendars.each do |calendar| %>
+        <%= render "calendar_item", calendar: calendar %>
+      <% end %>
+    </ul>
+
+    <div class="bg-gray-50 px-6 py-3 text-sm text-gray-500">
+      총 <%= calendars.count %>개의 캘린더 (캐시 유효기간: 1시간)
+    </div>
+  <% else %>
+    <div class="px-6 py-12 text-center">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">캘린더가 없습니다</h3>
+      <p class="mt-1 text-sm text-gray-500">
+        Google 계정에 캘린더가 없거나 불러오기에 실패했습니다.
+      </p>
+    </div>
+  <% end %>
+</div>

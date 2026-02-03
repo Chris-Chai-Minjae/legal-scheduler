@@ -1,0 +1,116 @@
+<%# @TASK T2.2 - Calendar selector partial for Turbo refresh %>
+<%# @SPEC REQ-CAL-02: Calendar type assignment %>
+
+<%
+  # Get current assignments from database
+  lbox_calendar = user.calendars.find_by(calendar_type: :lbox)
+  work_calendar = user.calendars.find_by(calendar_type: :work)
+  personal_calendar = user.calendars.find_by(calendar_type: :personal)
+
+  # Use provided calendar lists
+  all_calendars = lbox_calendars # Assuming all three are the same list
+%>
+
+<div class="space-y-6">
+  <%# LBOX Calendar (Source) - Purple %>
+  <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+    <div class="flex items-center gap-2 mb-4">
+      <div class="w-4 h-4 rounded-full" style="background-color: #8B5CF6;"></div>
+      <h3 class="text-lg font-semibold text-gray-900">LBOX 캘린더 (변론 일정 원본)</h3>
+      <span class="text-sm text-red-600 font-medium">필수</span>
+    </div>
+
+    <%= form_with url: calendar_path(lbox_calendar&.google_id || "temp"), method: :patch, data: { turbo_frame: "calendar-selector" } do |f| %>
+      <%= f.hidden_field :calendar_type, value: "lbox" %>
+
+      <div class="space-y-2">
+        <%= f.select :id,
+          options_for_select(
+            all_calendars.map { |cal| [cal[:summary], cal[:id]] },
+            lbox_calendar&.google_id
+          ),
+          { prompt: "캘린더를 선택하세요" },
+          class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500",
+          onchange: "this.form.requestSubmit()"
+        %>
+
+        <% if lbox_calendar %>
+          <p class="text-sm text-green-600 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            선택됨: <%= lbox_calendar.name %>
+          </p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Work Calendar (Target) - Blue %>
+  <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+    <div class="flex items-center gap-2 mb-4">
+      <div class="w-4 h-4 rounded-full" style="background-color: #2563EB;"></div>
+      <h3 class="text-lg font-semibold text-gray-900">업무 캘린더 (서면 작성 일정 저장)</h3>
+      <span class="text-sm text-red-600 font-medium">필수</span>
+    </div>
+
+    <%= form_with url: calendar_path(work_calendar&.google_id || "temp"), method: :patch, data: { turbo_frame: "calendar-selector" } do |f| %>
+      <%= f.hidden_field :calendar_type, value: "work" %>
+
+      <div class="space-y-2">
+        <%= f.select :id,
+          options_for_select(
+            all_calendars.map { |cal| [cal[:summary], cal[:id]] },
+            work_calendar&.google_id
+          ),
+          { prompt: "캘린더를 선택하세요" },
+          class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+          onchange: "this.form.requestSubmit()"
+        %>
+
+        <% if work_calendar %>
+          <p class="text-sm text-green-600 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            선택됨: <%= work_calendar.name %>
+          </p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Personal Calendar (Optional) - Green %>
+  <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+    <div class="flex items-center gap-2 mb-4">
+      <div class="w-4 h-4 rounded-full" style="background-color: #10B981;"></div>
+      <h3 class="text-lg font-semibold text-gray-900">개인 캘린더</h3>
+      <span class="text-sm text-gray-500 font-medium">선택사항</span>
+    </div>
+
+    <%= form_with url: calendar_path(personal_calendar&.google_id || "temp"), method: :patch, data: { turbo_frame: "calendar-selector" } do |f| %>
+      <%= f.hidden_field :calendar_type, value: "personal" %>
+
+      <div class="space-y-2">
+        <%= f.select :id,
+          options_for_select(
+            all_calendars.map { |cal| [cal[:summary], cal[:id]] },
+            personal_calendar&.google_id
+          ),
+          { include_blank: "선택 안 함", prompt: false },
+          class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500",
+          onchange: "this.form.requestSubmit()"
+        %>
+
+        <% if personal_calendar %>
+          <p class="text-sm text-green-600 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            선택됨: <%= personal_calendar.name %>
+          </p>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

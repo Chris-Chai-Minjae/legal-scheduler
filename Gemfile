@@ -22,6 +22,12 @@ gem "bcrypt", "~> 3.1.7"
 gem "omniauth-google-oauth2"
 gem "omniauth-rails_csrf_protection"
 
+# Google Calendar API v3 [https://github.com/googleapis/google-api-ruby-client]
+gem "google-apis-calendar_v3"
+
+# Pagination [https://github.com/kaminari/kaminari]
+gem "kaminari"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 

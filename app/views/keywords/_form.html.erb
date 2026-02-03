@@ -1,0 +1,31 @@
+<%# @TASK T3.1 - Keyword form partial %>
+<%# @SPEC REQ-SET-01: Add custom keywords with Stimulus controller %>
+
+<div id="keyword-form">
+  <%= form_with model: keyword,
+                url: keywords_path,
+                data: {
+                  controller: "keyword-input",
+                  action: "submit->keyword-input#submit"
+                },
+                class: "flex gap-2" do |form| %>
+
+    <div class="flex-1">
+      <%= form.text_field :keyword,
+                         placeholder: "새 키워드 입력 (예: 공판, 피의자조사)",
+                         class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500",
+                         data: { keyword_input_target: "input" },
+                         autofocus: true %>
+
+      <% if keyword.errors[:keyword].any? %>
+        <p class="mt-1 text-sm text-red-600">
+          <%= keyword.errors[:keyword].first %>
+        </p>
+      <% end %>
+    </div>
+
+    <%= form.submit "추가",
+                   class: "px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+                   data: { keyword_input_target: "submit" } %>
+  <% end %>
+</div>

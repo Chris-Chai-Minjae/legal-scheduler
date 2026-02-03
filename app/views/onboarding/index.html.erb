@@ -1,0 +1,166 @@
+<%# @TASK T9.2 - Onboarding Main View %>
+<%# @SPEC Based on w03-onboarding.html from Stitch design %>
+
+<% content_for :title, "온보딩 - Legal Scheduler AI" %>
+
+<% case @step %>
+<% when 1 %>
+  <!-- Step 1: Google OAuth -->
+  <div class="content-card">
+    <div class="icon-large">📅</div>
+    <h2 class="content-title">Google 캘린더와 연결하세요</h2>
+    <p class="content-description">
+      일정을 자동으로 감지하고 서면 작성 일정을 생성합니다
+    </p>
+    <%= link_to "Google로 연결하기", auth_google_path, class: "btn btn-primary" %>
+  </div>
+
+<% when 2 %>
+  <!-- Step 2: Telegram Bot -->
+  <div class="content-card">
+    <div class="icon-large">💬</div>
+    <h2 class="content-title">Telegram Bot을 연결하세요</h2>
+    <p class="content-description">
+      Bot 사용자명: <strong>@LegalSchedulerBot</strong>
+    </p>
+    <%= link_to "Telegram에서 시작하기", "https://t.me/LegalSchedulerBot",
+        class: "btn btn-primary", target: "_blank" %>
+  </div>
+
+  <div class="button-group">
+    <%= link_to "← 이전", onboarding_path(step: 1), class: "btn btn-secondary" %>
+    <%= link_to "건너뛰기 →", onboarding_path(step: 3), class: "btn btn-primary" %>
+  </div>
+
+<% when 3 %>
+  <!-- Step 3: Calendar Selection -->
+  <div class="content-card left-align">
+    <h2 class="content-title" style="text-align: center;">캘린더 역할을 지정하세요</h2>
+    <p class="content-description" style="text-align: center;">
+      각 용도별로 사용할 Google 캘린더를 선택합니다
+    </p>
+
+    <% if @calendars.blank? %>
+      <div style="text-align: center; padding: 40px; color: #6B7280;">
+        <p>캘린더를 불러올 수 없습니다.</p>
+        <p style="font-size: 14px; margin-top: 8px;">Google 계정 연결 상태를 확인해주세요.</p>
+        <%= link_to "다시 시도", onboarding_path(step: 3), class: "btn btn-secondary", style: "margin-top: 16px;" %>
+      </div>
+    <% else %>
+      <%= form_with url: update_calendars_path, method: :patch, local: true do |f| %>
+        <div style="display: flex; flex-direction: column; gap: 16px; margin: 24px 0;">
+          <!-- LBOX Calendar -->
+          <div style="display: flex; flex-direction: row; align-items: center; gap: 16px; padding: 20px; border: 1px solid #D1D5DB; border-radius: 8px; background: white;">
+            <div style="width: 8px; height: 50px; border-radius: 4px; background: #8B5CF6; flex-shrink: 0;"></div>
+            <div style="min-width: 160px;">
+              <div style="font-weight: 600; font-size: 15px; color: #111827; margin-bottom: 4px;">LBOX 캘린더</div>
+              <div style="font-size: 13px; color: #6B7280;">변론 일정을 감지할 캘린더</div>
+            </div>
+            <%= f.select :lbox_calendar_id,
+                options_for_select(
+                  @calendars.map { |c| [c[:summary], c[:id]] },
+                  @user.calendars.find_by(calendar_type: :lbox)&.google_id
+                ),
+                { prompt: "내 캘린더 선택..." },
+                style: "flex: 1; padding: 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px;" %>
+          </div>
+
+          <!-- Work Calendar -->
+          <div style="display: flex; flex-direction: row; align-items: center; gap: 16px; padding: 20px; border: 1px solid #D1D5DB; border-radius: 8px; background: white;">
+            <div style="width: 8px; height: 50px; border-radius: 4px; background: #2563EB; flex-shrink: 0;"></div>
+            <div style="min-width: 160px;">
+              <div style="font-weight: 600; font-size: 15px; color: #111827; margin-bottom: 4px;">업무 캘린더</div>
+              <div style="font-size: 13px; color: #6B7280;">서면 작성 일정이 추가될 캘린더</div>
+            </div>
+            <%= f.select :work_calendar_id,
+                options_for_select(
+                  @calendars.map { |c| [c[:summary], c[:id]] },
+                  @user.calendars.find_by(calendar_type: :work)&.google_id
+                ),
+                { prompt: "내 캘린더 선택..." },
+                style: "flex: 1; padding: 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px;" %>
+          </div>
+
+          <!-- Personal Calendar -->
+          <div style="display: flex; flex-direction: row; align-items: center; gap: 16px; padding: 20px; border: 1px solid #D1D5DB; border-radius: 8px; background: white;">
+            <div style="width: 8px; height: 50px; border-radius: 4px; background: #10B981; flex-shrink: 0;"></div>
+            <div style="min-width: 160px;">
+              <div style="font-weight: 600; font-size: 15px; color: #111827; margin-bottom: 4px;">개인 캘린더</div>
+              <div style="font-size: 13px; color: #6B7280;">개인 일정을 관리할 캘린더</div>
+            </div>
+            <%= f.select :personal_calendar_id,
+                options_for_select(
+                  @calendars.map { |c| [c[:summary], c[:id]] },
+                  @user.calendars.find_by(calendar_type: :personal)&.google_id
+                ),
+                { include_blank: "내 캘린더 선택..." },
+                style: "flex: 1; padding: 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 15px;" %>
+          </div>
+        </div>
+
+        <div class="button-group" style="margin-top: 24px;">
+          <%= link_to "← 이전", onboarding_path(step: 2), class: "btn btn-secondary" %>
+          <%= f.submit "다음 →", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+<% when 4 %>
+  <!-- Step 4: Keywords Setup -->
+  <div class="content-card left-align">
+    <h2 class="content-title" style="text-align: center;">감지할 키워드를 설정하세요</h2>
+    <p class="content-description" style="text-align: center;">
+      이 키워드가 포함된 LBOX 일정이 감지되면 서면 작성 일정이 자동 생성됩니다
+    </p>
+
+    <%= form_with url: keywords_path, method: :post, local: true do |f| %>
+      <div class="keyword-input-group">
+        <%= f.text_field :name,
+            class: "input",
+            placeholder: "새 키워드 입력..." %>
+        <%= f.submit "추가", class: "btn-add" %>
+      </div>
+    <% end %>
+
+    <div class="keyword-chips">
+      <% @keywords.each do |keyword| %>
+        <span class="chip">
+          <%= keyword.name %>
+          <%= button_to keyword_path(keyword),
+              method: :delete,
+              class: "chip-remove",
+              form: { style: "display: inline;" },
+              data: { confirm: "이 키워드를 삭제하시겠습니까?" } do %>
+            &times;
+          <% end %>
+        </span>
+      <% end %>
+    </div>
+
+    <div class="info-box">
+      <div class="info-icon">💡</div>
+      <div class="info-text">
+        이 키워드가 포함된 LBOX 캘린더 일정이 감지되면 서면 작성 일정이 자동으로 생성됩니다.
+        <br>
+        예: "2024나23244 가습기 사건 <strong>변론</strong>기일" → "가습기 사건 서면작성" 일정 생성
+      </div>
+    </div>
+  </div>
+
+  <div class="button-group">
+    <%= link_to "← 이전", onboarding_path(step: 3), class: "btn btn-secondary" %>
+    <%= link_to "완료", dashboard_path, class: "btn btn-primary" %>
+  </div>
+
+<% else %>
+  <!-- Completed or Error -->
+  <div class="content-card">
+    <div class="icon-large">✅</div>
+    <h2 class="content-title">온보딩 완료!</h2>
+    <p class="content-description">
+      모든 설정이 완료되었습니다. 대시보드로 이동하세요.
+    </p>
+    <%= link_to "대시보드로 이동", dashboard_path, class: "btn btn-primary" %>
+  </div>
+<% end %>

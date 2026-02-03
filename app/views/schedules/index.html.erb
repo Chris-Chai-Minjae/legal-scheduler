@@ -1,0 +1,126 @@
+<%# @TASK T4.2 - Schedule List Page View %>
+<%# @SPEC REQ-DASH-02: Status filtering, pagination, search %>
+
+<% content_for :title, "일정 목록" %>
+
+<div class="header">
+  <h1>일정 목록</h1>
+  <%= form_with url: schedules_path,
+      method: :get,
+      class: "search-form",
+      data: {
+        controller: "search",
+        search_target: "form",
+        turbo_frame: "schedules_list"
+      } do |f| %>
+    <%= f.text_field :q,
+        value: params[:q],
+        placeholder: "일정 검색...",
+        class: "search-box",
+        data: {
+          search_target: "input",
+          action: "input->search#search"
+        } %>
+    <%= f.hidden_field :status, value: @current_status %>
+  <% end %>
+</div>
+
+<!-- Filter Tabs -->
+<div class="filter-tabs">
+  <%= link_to schedules_path(status: :all),
+      class: "tab #{'active' if @current_status == :all}",
+      data: { turbo: false } do %>
+    전체
+    <span class="tab-badge"><%= @status_counts[:all] %></span>
+  <% end %>
+
+  <%= link_to schedules_path(status: :pending),
+      class: "tab #{'active' if @current_status == :pending}",
+      data: { turbo: false } do %>
+    대기중
+    <span class="tab-badge"><%= @status_counts[:pending] %></span>
+  <% end %>
+
+  <%= link_to schedules_path(status: :approved),
+      class: "tab #{'active' if @current_status == :approved}",
+      data: { turbo: false } do %>
+    승인됨
+    <span class="tab-badge"><%= @status_counts[:approved] %></span>
+  <% end %>
+
+  <%= link_to schedules_path(status: :rejected),
+      class: "tab #{'active' if @current_status == :rejected}",
+      data: { turbo: false } do %>
+    거부됨
+    <span class="tab-badge"><%= @status_counts[:rejected] %></span>
+  <% end %>
+</div>
+
+<!-- Schedule Table (Turbo Frame for filtering/pagination) -->
+<%= turbo_frame_tag "schedules_list" do %>
+  <div class="section">
+    <% if @schedules.any? %>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>제목</th>
+            <th>예정일</th>
+            <th>원본일</th>
+            <th>상태</th>
+            <th>액션</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @schedules.each do |schedule| %>
+            <tr>
+              <td class="schedule-title-cell">
+                <%= schedule.title %>
+              </td>
+              <td class="schedule-date">
+                <%= l(schedule.scheduled_date, format: :long) %>
+              </td>
+              <td class="schedule-origin">
+                <%= l(schedule.original_date, format: :long) %>
+                <br><small><%= schedule.case_name %></small>
+              </td>
+              <td>
+                <%= render "shared/status_badge", status: schedule.status %>
+              </td>
+              <td>
+                <div class="actions">
+                  <%= link_to "👁️", schedule_path(schedule),
+                      class: "btn-icon",
+                      title: "상세보기",
+                      data: { turbo: false } %>
+                  <% if schedule.pending? %>
+                    <%= button_to "✅", approve_dashboard_schedule_path(schedule),
+                        method: :post,
+                        class: "btn-icon",
+                        title: "승인",
+                        data: { turbo: false } %>
+                    <%= button_to "❌", reject_dashboard_schedule_path(schedule),
+                        method: :post,
+                        class: "btn-icon",
+                        title: "거부",
+                        data: { turbo: false, confirm: "정말 거부하시겠습니까?" } %>
+                  <% else %>
+                    <span class="btn-icon disabled" title="수정">✏️</span>
+                    <span class="btn-icon disabled" title="삭제">🗑️</span>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <%= paginate @schedules, window: 2, outer_window: 1 %>
+    <% else %>
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>표시할 일정이 없습니다.</p>
+      </div>
+    <% end %>
+  </div>
+<% end %>

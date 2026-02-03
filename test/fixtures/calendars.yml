@@ -1,0 +1,23 @@
+# @TASK T4.1 - Calendars fixtures for testing
+# @TASK T5.2 - Added lbox and two calendars for schedule creator testing
+
+one:
+  user: one
+  google_id: "test_calendar_1@group.calendar.google.com"
+  name: "업무 캘린더"
+  calendar_type: work
+  is_enabled: true
+
+lbox:
+  user: one
+  google_id: "lbox_calendar@group.calendar.google.com"
+  name: "LBOX 캘린더"
+  calendar_type: lbox
+  is_enabled: true
+
+two:
+  user: two
+  google_id: "test_calendar_2@group.calendar.google.com"
+  name: "업무 캘린더 2"
+  calendar_type: work
+  is_enabled: true

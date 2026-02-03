@@ -1,0 +1,216 @@
+/* Legal Scheduler AI - Schedule Page Styles */
+/* Based on w05-schedules.html from Stitch design */
+
+/* Header */
+.schedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.schedule-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.search-box {
+  width: 300px;
+  padding: 10px 16px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.search-box:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Filter Tabs */
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--white);
+  padding: 16px;
+  border-radius: 12px;
+}
+
+/* Schedule Table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead {
+  border-bottom: 2px solid var(--gray-300);
+}
+
+.table th {
+  padding: 12px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.table td {
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.table tbody tr:hover {
+  background: var(--gray-100);
+}
+
+.schedule-title-cell {
+  font-weight: 500;
+  color: var(--gray-900);
+}
+
+.schedule-date {
+  color: var(--gray-700);
+  font-size: 14px;
+}
+
+.schedule-origin {
+  color: var(--gray-500);
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.page-btn,
+.pagination a,
+.pagination span {
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  color: var(--gray-700);
+  font-size: 14px;
+}
+
+.page-btn:hover,
+.pagination a:hover {
+  background: var(--gray-100);
+}
+
+.page-btn.active,
+.pagination .current {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.page-btn:disabled,
+.pagination .disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Schedule Card (for dashboard) */
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.schedule-card {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.schedule-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.schedule-icon {
+  width: 48px;
+  height: 48px;
+  background: #EFF6FF;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.schedule-content {
+  flex: 1;
+}
+
+.schedule-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--gray-900);
+  margin-bottom: 8px;
+}
+
+.schedule-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--gray-500);
+}
+
+.schedule-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .schedule-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .schedule-card {
+    flex-direction: column;
+  }
+
+  .schedule-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .schedule-actions .btn {
+    width: 100%;
+  }
+}

@@ -1,0 +1,6 @@
+# @TASK T4.1 - Sessions fixtures for testing
+
+one:
+  user: one
+  ip_address: "127.0.0.1"
+  user_agent: "Mozilla/5.0"

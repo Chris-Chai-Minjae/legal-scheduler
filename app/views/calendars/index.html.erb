@@ -1,0 +1,148 @@
+<%# @TASK T9.2 - Calendar Settings Page %>
+<%# @SPEC Based on w06-settings-calendar.html from Stitch design %>
+
+<% content_for :title, "캘린더 설정 - Legal Scheduler AI" %>
+
+<div class="settings-header">
+  <h1>캘린더 설정</h1>
+  <p>Google 캘린더를 연결하고 역할을 지정하세요</p>
+</div>
+
+<!-- Settings Tabs -->
+<%= render "shared/settings_tabs" %>
+
+<!-- Google Account Section -->
+<div class="section" style="padding: 32px;">
+  <h2 class="section-title">Google 계정 연결</h2>
+  <p class="section-subtitle">캘린더 데이터를 동기화하기 위해 Google 계정을 연결하세요</p>
+
+  <div class="google-account">
+    <div class="google-icon">📧</div>
+    <div class="account-info">
+      <div class="account-email"><%= Current.user.email_address %></div>
+      <div class="last-sync">
+        <% if @last_sync %>
+          마지막 동기화: <%= l(@last_sync, format: :short) %>
+        <% else %>
+          아직 동기화되지 않음
+        <% end %>
+      </div>
+    </div>
+    <%= button_to "다시 연결하기", refresh_calendars_path,
+        method: :post,
+        class: "btn-reconnect",
+        data: { turbo: false } %>
+  </div>
+</div>
+
+<!-- Calendar Role Assignment -->
+<div class="section" style="padding: 32px;">
+  <h2 class="section-title">캘린더 역할 지정</h2>
+  <p class="section-subtitle">각 캘린더의 용도를 지정하여 자동화 규칙을 설정합니다</p>
+
+  <%= turbo_frame_tag "calendars-list" do %>
+    <div class="calendar-settings">
+      <!-- LBOX Calendar -->
+      <div class="calendar-setting-item">
+        <div class="calendar-color-bar lbox"></div>
+        <div class="calendar-info">
+          <div class="calendar-label">
+            LBOX 캘린더
+            <span class="calendar-badge lbox">일정 감지용</span>
+          </div>
+          <div class="calendar-description">
+            변론 일정을 감지할 캘린더를 선택하세요
+          </div>
+        </div>
+        <%= form_with url: calendar_path(@lbox_calendar&.google_id || "temp"),
+            method: :patch,
+            data: { turbo_frame: "calendars-list" } do |f| %>
+          <%= f.hidden_field :calendar_type, value: "lbox" %>
+          <%= f.select :id,
+              options_for_select(
+                @calendars.map { |c| [c[:summary], c[:id]] },
+                @lbox_calendar&.google_id
+              ),
+              { prompt: "캘린더 선택..." },
+              class: "select",
+              style: "min-width: 250px;",
+              onchange: "this.form.requestSubmit()" %>
+        <% end %>
+      </div>
+
+      <!-- Work Calendar -->
+      <div class="calendar-setting-item">
+        <div class="calendar-color-bar work"></div>
+        <div class="calendar-info">
+          <div class="calendar-label">
+            업무 캘린더
+            <span class="calendar-badge work">서면 일정 추가용</span>
+          </div>
+          <div class="calendar-description">
+            서면 작성 일정이 추가될 캘린더를 선택하세요
+          </div>
+        </div>
+        <%= form_with url: calendar_path(@work_calendar&.google_id || "temp"),
+            method: :patch,
+            data: { turbo_frame: "calendars-list" } do |f| %>
+          <%= f.hidden_field :calendar_type, value: "work" %>
+          <%= f.select :id,
+              options_for_select(
+                @calendars.map { |c| [c[:summary], c[:id]] },
+                @work_calendar&.google_id
+              ),
+              { prompt: "캘린더 선택..." },
+              class: "select",
+              style: "min-width: 250px;",
+              onchange: "this.form.requestSubmit()" %>
+        <% end %>
+      </div>
+
+      <!-- Personal Calendar -->
+      <div class="calendar-setting-item">
+        <div class="calendar-color-bar personal"></div>
+        <div class="calendar-info">
+          <div class="calendar-label">
+            개인 캘린더
+            <span class="calendar-badge personal">개인 일정용</span>
+          </div>
+          <div class="calendar-description">
+            개인 일정을 관리할 캘린더를 선택하세요
+          </div>
+        </div>
+        <%= form_with url: calendar_path(@personal_calendar&.google_id || "temp"),
+            method: :patch,
+            data: { turbo_frame: "calendars-list" } do |f| %>
+          <%= f.hidden_field :calendar_type, value: "personal" %>
+          <%= f.select :id,
+              options_for_select(
+                @calendars.map { |c| [c[:summary], c[:id]] },
+                @personal_calendar&.google_id
+              ),
+              { include_blank: "캘린더 선택..." },
+              class: "select",
+              style: "min-width: 250px;",
+              onchange: "this.form.requestSubmit()" %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .settings-header {
+    margin-bottom: 24px;
+  }
+
+  .settings-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+  }
+
+  .settings-header p {
+    font-size: 14px;
+    color: var(--gray-500);
+  }
+</style>

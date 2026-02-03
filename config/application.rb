@@ -35,5 +35,9 @@ module LegalScheduler
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # T4.1 - Set Korean locale
+    config.i18n.default_locale = :ko
+    config.time_zone = "Seoul"
   end
 end

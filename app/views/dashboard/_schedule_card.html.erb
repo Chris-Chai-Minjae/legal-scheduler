@@ -1,0 +1,144 @@
+<%# @TASK T4.1 - Schedule card component %>
+<%# @SPEC .sdd/specs/dashboard/spec.md#REQ-DASH-01 %>
+
+<%= turbo_frame_tag dom_id(schedule) do %>
+  <div class="schedule-card">
+    <div class="schedule-icon">📅</div>
+    <div class="schedule-content">
+      <div class="schedule-title">
+        <%= schedule.title %>
+      </div>
+      <div class="schedule-meta">
+        <span>📅 <%= l(schedule.scheduled_date, format: :short) %></span>
+        <% if schedule.original_date %>
+          <span>🔗 원본: <%= l(schedule.original_date, format: :short) %></span>
+        <% end %>
+      </div>
+    </div>
+    <div class="schedule-actions">
+      <span class="badge badge-pending">대기중</span>
+      <%= button_to approve_dashboard_schedule_path(schedule),
+                    method: :post,
+                    class: "btn btn-success",
+                    data: { turbo_frame: dom_id(schedule) } do %>
+        ✅ 승인
+      <% end %>
+      <%= button_to reject_dashboard_schedule_path(schedule),
+                    method: :post,
+                    class: "btn btn-danger",
+                    data: { turbo_frame: dom_id(schedule), turbo_confirm: "이 일정을 거부하시겠습니까?" } do %>
+        ❌ 거부
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<style>
+  .schedule-card {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .schedule-card:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .schedule-icon {
+    width: 48px;
+    height: 48px;
+    background: #EFF6FF;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .schedule-content {
+    flex: 1;
+  }
+
+  .schedule-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--gray-900);
+    margin-bottom: 8px;
+  }
+
+  .schedule-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
+    color: var(--gray-500);
+  }
+
+  .schedule-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .badge-pending {
+    background: #FEF3C7;
+    color: #92400E;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .btn-success {
+    background: var(--success);
+    color: white;
+  }
+
+  .btn-success:hover {
+    background: #16A34A;
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #DC2626;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .schedule-card {
+      flex-direction: column;
+    }
+
+    .schedule-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .btn {
+      width: 100%;
+    }
+  }
+</style>

@@ -1,0 +1,32 @@
+# @TASK T4.2 - Schedules test fixtures
+# @SPEC REQ-DASH-02
+
+one:
+  calendar: one
+  title: "[업무] 2024나23244 가습기살균제 사건 서면작성"
+  description: "변론기일"
+  original_date: <%= 2.weeks.from_now.to_date %>
+  scheduled_date: <%= Date.today %>
+  status: pending
+  original_event_id: "original_event_1"
+  created_event_id: null
+
+two:
+  calendar: two
+  title: "[업무] 2024가합54321 손해배상청구 사건 서면작성"
+  description: "변론기일"
+  original_date: <%= 3.weeks.from_now.to_date %>
+  scheduled_date: <%= 1.day.from_now.to_date %>
+  status: approved
+  original_event_id: "original_event_2"
+  created_event_id: "created_event_2"
+
+three:
+  calendar: one
+  title: "[업무] 2024고단1234 업무상배임 사건 서면작성"
+  description: "검찰조사"
+  original_date: <%= 4.weeks.from_now.to_date %>
+  scheduled_date: <%= 2.days.from_now.to_date %>
+  status: rejected
+  original_event_id: "original_event_3"
+  created_event_id: null

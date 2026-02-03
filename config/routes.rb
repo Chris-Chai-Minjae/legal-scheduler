@@ -4,20 +4,65 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resources :registrations, only: [:new, :create]
 
-  # Application routes
+  # Google OAuth routes
+  get "/auth/google", to: "google_oauth#new", as: :auth_google
+  get "/auth/google/callback", to: "google_oauth#callback", as: :auth_google_callback
+
+  # Onboarding (T9.2)
   get "/onboarding", to: "onboarding#index", as: :onboarding
+  post "/onboarding", to: "onboarding#update_step"
+  patch "/onboarding/calendars", to: "calendars#update_from_onboarding", as: :update_calendars
+
+  # Dashboard
   get "/dashboard", to: "dashboard#index", as: :dashboard
 
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  # Dashboard actions (T4.1)
+  namespace :dashboard do
+    resources :schedules, only: [] do
+      member do
+        post :approve
+        post :reject
+      end
+    end
+  end
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # Keywords management (T3.1)
+  resources :keywords, only: [:index, :create, :destroy] do
+    member do
+      post :toggle
+    end
+  end
+
+  # Calendars management (T2.1, T2.2)
+  resources :calendars, only: [:index, :update], param: :google_id do
+    collection do
+      post :refresh
+    end
+  end
+
+  # Schedules list and detail (T4.2)
+  resources :schedules, only: [:index, :show] do
+    collection do
+      post :sync  # Google Calendar 동기화
+    end
+    member do
+      delete :cancel  # 수동 취소
+    end
+  end
+
+  # Settings (T9.2)
+  get "/settings/notifications", to: "settings#notifications", as: :notifications_settings
+  patch "/settings/notifications", to: "settings#update_notifications"
+  get "/settings/telegram", to: "settings#telegram", as: :telegram_settings
+  post "/settings/telegram/link", to: "settings#link_telegram", as: :link_telegram_settings
+  delete "/settings/telegram/unlink", to: "settings#unlink_telegram", as: :unlink_telegram_settings
+
+  # Telegram webhook
+  post "/telegram/webhook", to: "telegram_webhooks#callback"
+
+  # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
-  # Defines the root path route ("/")
+  # Root
   root "sessions#new"
 end

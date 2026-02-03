@@ -1,0 +1,54 @@
+<%# @TASK T9.2 - Shared Sidebar Component %>
+<%# @SPEC Based on w04-w08 sidebar design from Stitch %>
+
+<div class="sidebar">
+  <div class="logo">
+    <h1>Legal Scheduler AI</h1>
+  </div>
+
+  <nav class="nav">
+    <%= link_to dashboard_path, class: "nav-item #{current_page?(dashboard_path) ? 'active' : ''}" do %>
+      <span>🏠</span>
+      <span>홈</span>
+    <% end %>
+    <%= link_to schedules_path, class: "nav-item #{current_page?(schedules_path) ? 'active' : ''}" do %>
+      <span>📋</span>
+      <span>일정 목록</span>
+    <% end %>
+
+    <div class="nav-group">
+      <div class="nav-group-title">설정</div>
+      <%= link_to calendars_path, class: "nav-item #{current_page?(calendars_path) ? 'active' : ''}" do %>
+        <span>📅</span>
+        <span>캘린더</span>
+      <% end %>
+      <%= link_to keywords_path, class: "nav-item #{current_page?(keywords_path) ? 'active' : ''}" do %>
+        <span>🔑</span>
+        <span>키워드</span>
+      <% end %>
+      <%= link_to notifications_settings_path, class: "nav-item #{current_page?(notifications_settings_path) rescue false ? 'active' : ''}" do %>
+        <span>🔔</span>
+        <span>알림</span>
+      <% end %>
+    </div>
+
+    <div class="nav-group">
+      <%= link_to "#", class: "nav-item" do %>
+        <span>👤</span>
+        <span>계정</span>
+      <% end %>
+      <%= button_to "로그아웃", session_path, method: :delete, class: "nav-item", style: "border: none; background: none; width: 100%; text-align: left;" do %>
+        <span>🚪</span>
+        <span>로그아웃</span>
+      <% end %>
+    </div>
+  </nav>
+
+  <div class="user-section">
+    <div class="user-avatar"><%= Current.session&.user&.email_address&.first&.upcase || "?" %></div>
+    <div class="user-info">
+      <div class="user-name"><%= Current.session&.user&.email_address&.split("@")&.first || "사용자" %></div>
+      <div class="user-email"><%= Current.session&.user&.email_address || "" %></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,64 @@
+# @TASK T4.1 - Korean locale configuration
+# @SPEC .sdd/specs/dashboard/spec.md#REQ-DASH-01
+
+ko:
+  date:
+    formats:
+      default: "%Y-%m-%d"
+      short: "%m월 %d일 (%a)"
+      long: "%Y년 %m월 %d일 (%a)"
+    abbr_day_names:
+      - 일
+      - 월
+      - 화
+      - 수
+      - 목
+      - 금
+      - 토
+    day_names:
+      - 일요일
+      - 월요일
+      - 화요일
+      - 수요일
+      - 목요일
+      - 금요일
+      - 토요일
+    abbr_month_names:
+      - ~
+      - 1월
+      - 2월
+      - 3월
+      - 4월
+      - 5월
+      - 6월
+      - 7월
+      - 8월
+      - 9월
+      - 10월
+      - 11월
+      - 12월
+    month_names:
+      - ~
+      - 1월
+      - 2월
+      - 3월
+      - 4월
+      - 5월
+      - 6월
+      - 7월
+      - 8월
+      - 9월
+      - 10월
+      - 11월
+      - 12월
+    order:
+      - :year
+      - :month
+      - :day
+  time:
+    formats:
+      default: "%Y-%m-%d %H:%M:%S"
+      short: "%m월 %d일 %H:%M"
+      long: "%Y년 %m월 %d일 %H시 %M분"
+    am: "오전"
+    pm: "오후"

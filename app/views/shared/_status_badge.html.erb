@@ -1,0 +1,28 @@
+<%# @TASK T4.2 - Shared status badge component %>
+<%# @PARAM status: 'pending', 'approved', or 'rejected' %>
+
+<% badge_class = case status
+  when "pending"
+    "badge-pending"
+  when "approved"
+    "badge-approved"
+  when "rejected"
+    "badge-rejected"
+  else
+    "badge-pending"
+  end %>
+
+<% badge_text = case status
+  when "pending"
+    "대기중"
+  when "approved"
+    "승인됨"
+  when "rejected"
+    "거부됨"
+  else
+    "알 수 없음"
+  end %>
+
+<span class="badge <%= badge_class %>">
+  <%= badge_text %>
+</span>

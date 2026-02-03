@@ -1,0 +1,31 @@
+<%# @TASK T9.2 - Keywords chips list partial %>
+<%# @SPEC Based on w07-settings-keywords.html from Stitch design %>
+
+<% if keywords.any? %>
+  <div class="keyword-chips" style="margin-bottom: 24px;">
+    <% keywords.each do |keyword| %>
+      <span class="chip">
+        <%= keyword.name %>
+        <%= button_to keyword_path(keyword),
+            method: :delete,
+            class: "chip-remove",
+            style: "background: none; border: none; padding: 0; font-size: 18px; font-weight: bold; cursor: pointer; color: inherit;",
+            data: { turbo_frame: "keywords_list", turbo_confirm: "이 키워드를 삭제하시겠습니까?" } do %>
+          &times;
+        <% end %>
+      </span>
+    <% end %>
+  </div>
+<% else %>
+  <!-- Empty State -->
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">🔑</div>
+    <p>아직 키워드가 없습니다</p>
+    <%= button_to "기본 키워드 추가하기 (변론, 검찰조사, 재판)",
+        keywords_path(add_defaults: true),
+        method: :post,
+        class: "btn btn-secondary",
+        style: "margin-top: 16px;",
+        data: { turbo_frame: "keywords_list" } %>
+  </div>
+<% end %>

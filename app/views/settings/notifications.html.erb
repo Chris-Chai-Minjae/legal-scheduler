@@ -1,0 +1,136 @@
+<%# @TASK T9.2 - Notification Settings Page %>
+<%# @SPEC Based on w08-settings-notifications.html from Stitch design %>
+
+<% content_for :title, "알림 설정 - Legal Scheduler AI" %>
+
+<div class="settings-header">
+  <h1>알림 설정</h1>
+  <p>일정 알림과 스케줄링 규칙을 설정하세요</p>
+</div>
+
+<!-- Settings Tabs -->
+<%= render "shared/settings_tabs" %>
+
+<!-- Notification Settings -->
+<%= form_with model: @settings, url: notifications_settings_path, method: :patch do |f| %>
+  <div class="section" style="padding: 32px;">
+    <h2 class="section-title">스케줄링 규칙</h2>
+    <p class="section-subtitle">서면 작성 일정 생성 규칙을 설정합니다</p>
+
+    <div class="setting-items">
+      <!-- Morning Notification Time -->
+      <div class="setting-item">
+        <div class="setting-icon">🔔</div>
+        <div class="setting-content">
+          <div class="setting-label">아침 알림 시간</div>
+          <div class="setting-description">
+            매일 이 시간에 오늘의 일정 알림을 받습니다
+          </div>
+          <% current_time = @settings.morning_notification_time.present? ? @settings.morning_notification_time.strftime("%H:%M") : "08:00" %>
+          <%= f.select :morning_notification_time,
+              options_for_select([
+                ["06:00", "06:00"],
+                ["07:00", "07:00"],
+                ["08:00", "08:00"],
+                ["09:00", "09:00"],
+                ["10:00", "10:00"]
+              ], current_time),
+              {},
+              class: "select notification-select" %>
+        </div>
+      </div>
+
+      <!-- Weekly Limit -->
+      <div class="setting-item">
+        <div class="setting-icon">📅</div>
+        <div class="setting-content">
+          <div class="setting-label">주당 최대 서면작성 일정</div>
+          <div class="setting-description">
+            한 주에 최대 이 개수만큼 서면 작성 일정이 생성됩니다
+          </div>
+          <%= f.select :weekly_schedule_limit,
+              options_for_select([
+                ["1개", 1],
+                ["2개", 2],
+                ["3개", 3],
+                ["4개", 4],
+                ["5개", 5]
+              ], @settings.weekly_schedule_limit || 3),
+              {},
+              class: "select notification-select" %>
+        </div>
+      </div>
+
+      <!-- Lead Days -->
+      <div class="setting-item">
+        <div class="setting-icon">⏰</div>
+        <div class="setting-content">
+          <div class="setting-label">선행 일수 (변론일 며칠 전)</div>
+          <div class="setting-description">
+            변론일 며칠 전에 서면 작성 일정을 생성할지 설정합니다
+          </div>
+          <%= f.select :lead_days,
+              options_for_select([
+                ["7일 전", 7],
+                ["10일 전", 10],
+                ["14일 전 (2주)", 14],
+                ["21일 전 (3주)", 21]
+              ], @settings.lead_days || 14),
+              {},
+              class: "select notification-select" %>
+        </div>
+      </div>
+
+      <!-- Exclude Weekends -->
+      <div class="setting-item">
+        <div class="setting-icon">📆</div>
+        <div class="setting-content">
+          <div class="setting-label">주말 제외</div>
+          <div class="setting-description">
+            서면 작성 일정을 주말에 배치하지 않습니다 (토요일 → 금요일, 일요일 → 금요일)
+          </div>
+          <div class="toggle-switch <%= @settings.exclude_weekends ? 'active' : '' %>"
+               data-controller="toggle"
+               data-action="click->toggle#toggle">
+            <div class="toggle-slider"></div>
+            <%= f.hidden_field :exclude_weekends, value: @settings.exclude_weekends ? "1" : "0", data: { toggle_target: "input" } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Button -->
+  <div class="section save-section">
+    <%= f.submit "저장", class: "btn-save" %>
+  </div>
+<% end %>
+
+<style>
+  .settings-header {
+    margin-bottom: 24px;
+  }
+
+  .settings-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+  }
+
+  .settings-header p {
+    font-size: 14px;
+    color: var(--gray-500);
+  }
+
+  .notification-select {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  @media (max-width: 768px) {
+    .notification-select {
+      max-width: 100%;
+    }
+  }
+</style>

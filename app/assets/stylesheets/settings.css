@@ -1,0 +1,44 @@
+/* Legal Scheduler AI - Settings Page Styles */
+/* Based on w06-w08 settings pages from Stitch design */
+
+/* Settings Header */
+.settings-header {
+  margin-bottom: 24px;
+}
+
+.settings-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+}
+
+.settings-header p {
+  font-size: 14px;
+  color: var(--gray-500);
+}
+
+/* Settings Section */
+.settings-section {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+/* Notification Settings */
+.notification-select {
+  width: 100%;
+  max-width: 300px;
+}
+
+@media (max-width: 768px) {
+  .settings-section {
+    padding: 24px 16px;
+  }
+
+  .notification-select {
+    max-width: 100%;
+  }
+}

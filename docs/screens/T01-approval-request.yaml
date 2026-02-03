@@ -1,0 +1,74 @@
+# T01 - Telegram Approval Request Message
+# 서면작성 일정 승인 요청 메시지
+
+screen_id: T01
+name: Approval Request Message
+type: telegram_message
+version: "1.0"
+
+# Message Format
+message_template: |
+  📋 서면작성 일정 확인
+
+  📅 {scheduled_date}
+  📝 {case_number} {case_name}
+  ⚖️ 원본 기일: {original_date}
+
+# Variables
+variables:
+  scheduled_date:
+    description: 서면 작성 예정일
+    format: "yyyy년 MM월 dd일 (요일)"
+    example: "2026년 02월 10일 (화)"
+  case_number:
+    description: 사건번호
+    format: "yyyyXXXX####"
+    example: "2024가합12345"
+  case_name:
+    description: 사건명
+    example: "손해배상청구"
+  original_date:
+    description: 원본 변론 기일
+    format: "yyyy년 MM월 dd일 (요일)"
+    example: "2026년 02월 24일 (화)"
+
+# Inline Keyboard
+inline_keyboard:
+  - row:
+    - text: "✅ 승인"
+      callback_data: "approve:{schedule_id}"
+    - text: "❌ 거부"
+      callback_data: "reject:{schedule_id}"
+
+# Callback Data Format
+callback_data:
+  approve:
+    pattern: "approve:{schedule_id}"
+    description: 일정 승인 콜백
+    action: Update schedule status to 'approved'
+  reject:
+    pattern: "reject:{schedule_id}"
+    description: 일정 거부 콜백
+    action: Update schedule status to 'rejected'
+
+# Example Message
+example:
+  message: |
+    📋 서면작성 일정 확인
+
+    📅 2026년 02월 10일 (화)
+    📝 2024가합12345 손해배상청구
+    ⚖️ 원본 기일: 2026년 02월 24일 (화)
+  inline_keyboard:
+    - ["✅ 승인", "❌ 거부"]
+
+# Related Workflows
+related_workflows:
+  - weekly-scan.json: Sends this message for pending schedules
+  - approval-handler.json: Handles callback responses
+
+# Notes
+notes:
+  - 모든 pending 상태의 일정에 대해 이 메시지가 전송됨
+  - 사용자가 버튼을 클릭하면 approval-handler 워크플로우가 처리
+  - 알림 전송 후 notification_sent_at 필드가 업데이트됨

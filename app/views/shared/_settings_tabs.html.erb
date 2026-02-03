@@ -1,0 +1,13 @@
+<%# @TASK T9.2 - Settings Tabs Component %>
+<%# @SPEC Based on w06-w08 settings tabs design from Stitch %>
+
+<div class="settings-tabs">
+  <%= link_to "캘린더", calendars_path,
+      class: "tab #{current_page?(calendars_path) ? 'active' : ''}" %>
+  <%= link_to "키워드", keywords_path,
+      class: "tab #{current_page?(keywords_path) ? 'active' : ''}" %>
+  <%= link_to "Telegram", telegram_settings_path,
+      class: "tab #{current_page?(telegram_settings_path) ? 'active' : ''}" %>
+  <%= link_to "알림", notifications_settings_path,
+      class: "tab #{current_page?(notifications_settings_path) ? 'active' : ''}" %>
+</div>

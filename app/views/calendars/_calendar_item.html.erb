@@ -1,0 +1,47 @@
+<%# @TASK T2.1 - Calendar item partial %>
+<%# @SPEC REQ-CAL-01: Individual calendar display %>
+
+<li class="px-6 py-4 hover:bg-gray-50">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center min-w-0 flex-1">
+      <div
+        class="flex-shrink-0 w-4 h-4 rounded-full mr-3"
+        style="background-color: <%= calendar[:background_color] || '#4285F4' %>;"
+        title="<%= calendar[:foreground_color] %>">
+      </div>
+
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h3 class="text-sm font-medium text-gray-900 truncate">
+            <%= calendar[:summary] %>
+          </h3>
+
+          <% if calendar[:primary] %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+              기본
+            </span>
+          <% end %>
+        </div>
+
+        <div class="mt-1 flex items-center gap-4 text-sm text-gray-500">
+          <% if calendar[:description].present? %>
+            <p class="truncate"><%= calendar[:description] %></p>
+          <% end %>
+
+          <span class="flex items-center gap-1">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <%= calendar[:time_zone] %>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ml-4 flex-shrink-0 flex items-center gap-2">
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+        <%= calendar[:access_role]&.humanize || 'Unknown' %>
+      </span>
+    </div>
+  </div>
+</li>

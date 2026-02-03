@@ -1,0 +1,618 @@
+/* Legal Scheduler AI - Component Styles */
+/* Extracted from Stitch design files (w01-w08) */
+
+:root {
+  --primary: #2563EB;
+  --primary-dark: #1D4ED8;
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --gray-900: #111827;
+  --gray-700: #374151;
+  --gray-500: #6B7280;
+  --gray-300: #D1D5DB;
+  --gray-100: #F3F4F6;
+  --white: #FFFFFF;
+  --sidebar-bg: #1F2937;
+  --lbox: #8B5CF6;
+  --work: #2563EB;
+  --personal: #10B981;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+               'Noto Sans KR', Roboto, 'Helvetica Neue',
+               Arial, sans-serif;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-100);
+}
+
+.btn-success {
+  background: var(--success);
+  color: white;
+}
+
+.btn-success:hover {
+  background: #16A34A;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #DC2626;
+}
+
+.btn-icon {
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: var(--gray-100);
+}
+
+.btn-add {
+  padding: 12px 24px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-add:hover {
+  background: var(--primary-dark);
+}
+
+.btn-save {
+  padding: 12px 32px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-save:hover {
+  background: var(--primary-dark);
+}
+
+.btn-reconnect {
+  padding: 8px 16px;
+  background: white;
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-reconnect:hover {
+  background: var(--gray-100);
+}
+
+/* ===== Form Elements ===== */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin-bottom: 8px;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-500);
+  font-size: 18px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input.with-icon {
+  padding-left: 40px;
+}
+
+.input.valid {
+  border-color: var(--success);
+}
+
+.input.invalid {
+  border-color: var(--danger);
+}
+
+.select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  font-size: 16px;
+  background: white;
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ===== Badges ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-pending {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.badge-approved {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.badge-rejected {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+/* ===== Chips ===== */
+.keyword-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #EFF6FF;
+  color: var(--primary);
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.chip:hover {
+  background: #DBEAFE;
+}
+
+.chip-remove {
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.chip-remove:hover {
+  color: #DC2626;
+}
+
+/* ===== Toggle Switch ===== */
+.toggle-switch {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background: #D1D5DB;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle-switch.active {
+  background: var(--success);
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle-switch.active .toggle-slider {
+  transform: translateX(24px);
+}
+
+/* ===== Cards ===== */
+.section {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.section-subtitle {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin-bottom: 24px;
+}
+
+/* ===== Settings Tabs ===== */
+.settings-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--white);
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.tab {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab:hover {
+  background: var(--gray-100);
+}
+
+.tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+/* ===== Calendar Settings ===== */
+.calendar-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.calendar-setting-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+}
+
+.calendar-color-bar {
+  width: 6px;
+  height: 60px;
+  border-radius: 3px;
+}
+
+.calendar-color-bar.lbox {
+  background: var(--lbox);
+}
+
+.calendar-color-bar.work {
+  background: var(--work);
+}
+
+.calendar-color-bar.personal {
+  background: var(--personal);
+}
+
+.calendar-info {
+  flex: 1;
+}
+
+.calendar-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-badge {
+  padding: 2px 8px;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  font-size: 11px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.calendar-badge.lbox {
+  background: #F3E8FF;
+  color: #7C3AED;
+}
+
+.calendar-badge.work {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.calendar-badge.personal {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.calendar-description {
+  font-size: 14px;
+  color: var(--gray-500);
+}
+
+/* ===== Google Account ===== */
+.google-account {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--gray-100);
+  border-radius: 8px;
+  margin-bottom: 32px;
+}
+
+.google-icon {
+  font-size: 32px;
+}
+
+.account-info {
+  flex: 1;
+}
+
+.account-email {
+  font-weight: 500;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+}
+
+.last-sync {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+/* ===== Info Box ===== */
+.info-box {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #F0F9FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.info-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.info-text {
+  font-size: 14px;
+  color: var(--gray-700);
+  line-height: 1.5;
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--gray-500);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+/* ===== Settings Item ===== */
+.setting-items {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.setting-item {
+  display: flex;
+  gap: 16px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.setting-icon {
+  width: 48px;
+  height: 48px;
+  background: #EFF6FF;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.setting-content {
+  flex: 1;
+}
+
+.setting-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+}
+
+.setting-description {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin-bottom: 16px;
+}
+
+/* ===== Alerts ===== */
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.alert-danger {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.alert-success {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.alert-warning {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+/* ===== Save Section ===== */
+.save-section {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .calendar-setting-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .setting-item {
+    flex-direction: column;
+  }
+
+  .select {
+    max-width: 100%;
+  }
+}

@@ -1,0 +1,157 @@
+<%# @TASK T4.2 - Schedule Detail Page View %>
+<%# @SPEC REQ-DASH-02: Detailed schedule information %>
+
+<% content_for :title, "일정 상세" %>
+
+<div class="header">
+  <h1>일정 상세</h1>
+  <%= link_to "← 목록으로", schedules_path, class: "btn-secondary" %>
+</div>
+
+<div class="section">
+  <div class="detail-grid">
+    <div class="detail-row">
+      <dt>제목</dt>
+      <dd><%= @schedule.title %></dd>
+    </div>
+
+    <div class="detail-row">
+      <dt>예정일</dt>
+      <dd><%= l(@schedule.scheduled_date, format: :long) %></dd>
+    </div>
+
+    <div class="detail-row">
+      <dt>원본 일정일</dt>
+      <dd><%= l(@schedule.original_date, format: :long) %></dd>
+    </div>
+
+    <div class="detail-row">
+      <dt>상태</dt>
+      <dd><%= render "shared/status_badge", status: @schedule.status %></dd>
+    </div>
+
+    <div class="detail-row">
+      <dt>캘린더</dt>
+      <dd><%= @calendar.summary %></dd>
+    </div>
+
+    <% if @schedule.description.present? %>
+      <div class="detail-row">
+        <dt>설명</dt>
+        <dd><%= simple_format(@schedule.description) %></dd>
+      </div>
+    <% end %>
+
+    <% if @schedule.created_event_id.present? %>
+      <div class="detail-row">
+        <dt>생성된 캘린더 이벤트 ID</dt>
+        <dd><code><%= @schedule.created_event_id %></code></dd>
+      </div>
+    <% end %>
+
+    <% if @schedule.original_event_id.present? %>
+      <div class="detail-row">
+        <dt>원본 이벤트 ID</dt>
+        <dd><code><%= @schedule.original_event_id %></code></dd>
+      </div>
+    <% end %>
+
+    <div class="detail-row">
+      <dt>생성일시</dt>
+      <dd><%= l(@schedule.created_at, format: :long) %></dd>
+    </div>
+
+    <div class="detail-row">
+      <dt>마지막 수정</dt>
+      <dd><%= l(@schedule.updated_at, format: :long) %></dd>
+    </div>
+  </div>
+
+  <!-- Actions for pending schedules -->
+  <% if @schedule.pending? %>
+    <div class="detail-actions">
+      <%= button_to "승인",
+          approve_dashboard_schedule_path(@schedule),
+          method: :post,
+          class: "btn-approve" %>
+      <%= button_to "거부",
+          reject_dashboard_schedule_path(@schedule),
+          method: :post,
+          class: "btn-reject",
+          form: { data: { turbo_confirm: "정말 거부하시겠습니까?" } } %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .detail-grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .detail-row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-100);
+  }
+
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+
+  .detail-row dt {
+    font-weight: 600;
+    color: var(--gray-700);
+  }
+
+  .detail-row dd {
+    color: var(--gray-900);
+  }
+
+  .detail-row code {
+    font-size: 12px;
+    padding: 2px 6px;
+    background: var(--gray-100);
+    border-radius: 4px;
+  }
+
+  .detail-actions {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 2px solid var(--gray-200);
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-approve {
+    padding: 10px 20px;
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .btn-reject {
+    padding: 10px 20px;
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .btn-secondary {
+    padding: 8px 16px;
+    background: white;
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+</style>

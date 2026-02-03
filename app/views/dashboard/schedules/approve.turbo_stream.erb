@@ -1,0 +1,9 @@
+<%# @TASK T4.1 - Approve action turbo stream response %>
+
+<%= turbo_stream.remove dom_id(@schedule) %>
+
+<%= turbo_stream.update "toast" do %>
+  <div class="toast toast-success">
+    ✅ 일정이 승인되었습니다: <%= @schedule.title %>
+  </div>
+<% end %>

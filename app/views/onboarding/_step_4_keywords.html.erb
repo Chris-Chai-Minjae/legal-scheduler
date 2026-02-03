@@ -1,0 +1,57 @@
+<%# @TASK T3.1 - Onboarding Step 4: Keywords setup %>
+<%# @SPEC W03: Onboarding flow integration %>
+
+<div class="max-w-2xl mx-auto">
+  <div class="text-center mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">
+      Step 4: 키워드 설정
+    </h2>
+    <p class="text-gray-600">
+      캘린더에서 감지할 일정 키워드를 확인하고 추가하세요.
+    </p>
+  </div>
+
+  <%# Default keywords notice %>
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+    <div class="flex items-start">
+      <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+      </svg>
+      <div>
+        <h3 class="text-sm font-medium text-blue-900 mb-1">
+          기본 키워드가 자동으로 추가되었습니다
+        </h3>
+        <p class="text-sm text-blue-700">
+          "변론", "검찰조사", "재판" 키워드가 활성화되어 있습니다.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <%# Keyword form %>
+  <div class="bg-white shadow-sm rounded-lg p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-4">추가 키워드 입력</h3>
+    <%= render "keywords/form", keyword: Keyword.new %>
+  </div>
+
+  <%# Keywords list %>
+  <div class="bg-white shadow-sm rounded-lg p-6">
+    <h3 class="text-lg font-semibold mb-4">등록된 키워드</h3>
+
+    <div id="keywords-list" class="space-y-2">
+      <% if @user.keywords.any? %>
+        <%= render @user.keywords %>
+      <% else %>
+        <p class="text-gray-500 text-center py-4">
+          등록된 키워드가 없습니다.
+        </p>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Navigation %>
+  <div class="mt-8 flex justify-between">
+    <%= link_to "← 이전 단계", onboarding_path(step: 3), class: "px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50" %>
+    <%= link_to "다음 단계 →", onboarding_path(step: 5), class: "px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700" %>
+  </div>
+</div>

@@ -1,0 +1,140 @@
+<%# Telegram 설정 페이지 %>
+
+<% content_for :title, "Telegram 설정 - Legal Scheduler AI" %>
+
+<div class="settings-header">
+  <h1>Telegram 설정</h1>
+  <p>Telegram Bot을 연결하여 알림을 받으세요</p>
+</div>
+
+<!-- Settings Tabs -->
+<%= render "shared/settings_tabs" %>
+
+<div class="section" style="padding: 32px;">
+  <h2 class="section-title">Telegram 연결 상태</h2>
+
+  <% if @user.telegram_chat_id.present? %>
+    <!-- 연결됨 -->
+    <div style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #ECFDF5; border-radius: 12px; margin-bottom: 24px;">
+      <div style="font-size: 48px;">✅</div>
+      <div>
+        <div style="font-weight: 600; color: #065F46; font-size: 18px;">연결됨</div>
+        <div style="color: #047857; font-size: 14px;">Chat ID: <%= @user.telegram_chat_id %></div>
+      </div>
+      <div style="margin-left: auto;">
+        <%= button_to "연결 해제", unlink_telegram_settings_path,
+            method: :delete,
+            class: "btn btn-secondary",
+            data: { confirm: "정말 Telegram 연결을 해제하시겠습니까?" } %>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-icon">💡</div>
+      <div class="info-text">
+        서면 작성 일정이 생성되면 Telegram으로 알림을 받습니다.<br>
+        알림에서 직접 승인/거부할 수 있습니다.
+      </div>
+    </div>
+
+  <% else %>
+    <!-- 미연결 -->
+    <div style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #FEF3C7; border-radius: 12px; margin-bottom: 24px;">
+      <div style="font-size: 48px;">⚠️</div>
+      <div>
+        <div style="font-weight: 600; color: #92400E; font-size: 18px;">연결되지 않음</div>
+        <div style="color: #B45309; font-size: 14px;">아래 방법으로 Telegram을 연결해주세요</div>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom: 16px; color: #374151;">연결 방법</h3>
+
+    <div style="background: #F9FAFB; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+      <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+        <div style="width: 32px; height: 32px; background: #2563EB; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">1</div>
+        <div>
+          <div style="font-weight: 500;">Telegram에서 Bot 찾기</div>
+          <div style="color: #6B7280; font-size: 14px;">@MINJAEAI_Bot 검색</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+        <div style="width: 32px; height: 32px; background: #2563EB; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">2</div>
+        <div>
+          <div style="font-weight: 500;">/start 명령어 전송</div>
+          <div style="color: #6B7280; font-size: 14px;">Bot과 대화 시작</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 16px;">
+        <div style="width: 32px; height: 32px; background: #2563EB; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">3</div>
+        <div>
+          <div style="font-weight: 500;">Chat ID 입력</div>
+          <div style="color: #6B7280; font-size: 14px;">Bot이 알려주는 Chat ID를 아래에 입력하세요</div>
+        </div>
+      </div>
+    </div>
+
+    <%= form_with url: link_telegram_settings_path, method: :post, local: true do |f| %>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <%= f.text_field :chat_id,
+            placeholder: "Chat ID 입력 (예: 925514801)",
+            style: "flex: 1; padding: 12px 16px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px;" %>
+        <%= f.submit "연결하기", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<style>
+  .settings-header {
+    margin-bottom: 24px;
+  }
+  .settings-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+  }
+  .settings-header p {
+    font-size: 14px;
+    color: var(--gray-500);
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 16px;
+  }
+  .info-box {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: #F0F9FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 8px;
+  }
+  .info-icon {
+    font-size: 20px;
+  }
+  .info-text {
+    font-size: 14px;
+    color: var(--gray-700);
+    line-height: 1.5;
+  }
+  .btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-primary {
+    background: var(--primary, #2563EB);
+    color: white;
+  }
+  .btn-secondary {
+    background: white;
+    color: var(--gray-700, #374151);
+    border: 1px solid var(--gray-300, #D1D5DB);
+  }
+</style>
