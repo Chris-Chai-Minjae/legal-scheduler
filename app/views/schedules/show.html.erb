@@ -35,10 +35,17 @@
       <dd><%= @calendar.name %></dd>
     </div>
 
-    <% if @schedule.description.present? %>
+    <% if @schedule.case_number.present? %>
       <div class="detail-row">
-        <dt>설명</dt>
-        <dd><%= simple_format(@schedule.description) %></dd>
+        <dt>사건번호</dt>
+        <dd><%= @schedule.case_number %></dd>
+      </div>
+    <% end %>
+
+    <% if @schedule.case_name.present? %>
+      <div class="detail-row">
+        <dt>사건명</dt>
+        <dd><%= @schedule.case_name %></dd>
       </div>
     <% end %>
 
