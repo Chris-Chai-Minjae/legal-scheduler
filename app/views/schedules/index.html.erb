@@ -90,11 +90,13 @@
                 <div class="actions">
                   <%= link_to "👁️", schedule_path(schedule),
                       class: "btn-icon",
-                      title: "상세보기" %>
+                      title: "상세보기",
+                      data: { turbo_frame: "_top" } %>
                   <% unless schedule.cancelled? %>
                     <%= link_to "✏️", edit_schedule_path(schedule),
                         class: "btn-icon",
-                        title: "수정" %>
+                        title: "수정",
+                        data: { turbo_frame: "_top" } %>
                     <%= button_to "🗑️", schedule_path(schedule),
                         method: :delete,
                         class: "btn-icon",
