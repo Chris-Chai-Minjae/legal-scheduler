@@ -55,7 +55,8 @@ class WatermarksController < ApplicationController
     output_path = result[:output_path]
 
     response.headers["Content-Type"] = result[:content_type]
-    response.headers["Content-Disposition"] = "attachment; filename=\"#{result[:filename]}\""
+    # RFC 5987/6266 표준에 따라 파일명 안전하게 인코딩 (헤더 인젝션 방지)
+    response.headers["Content-Disposition"] = content_disposition(result[:filename])
 
     # 청크 단위로 스트리밍 (메모리 스파이크 방지)
     File.open(output_path, "rb") do |file|
@@ -63,12 +64,25 @@ class WatermarksController < ApplicationController
         response.stream.write(chunk)
       end
     end
-  rescue IOError => e
-    Rails.logger.error("[WatermarksController] Stream error: #{e.message}")
+  rescue IOError, Errno::EPIPE, Errno::ECONNRESET => e
+    # 클라이언트 연결 끊김 등 스트리밍 에러 처리
+    Rails.logger.warn("[WatermarksController] Stream interrupted: #{e.class} - #{e.message}")
   ensure
-    response.stream.close
-    # FileUtils.rm_f는 파일이 없어도 예외를 발생시키지 않음
+    response.stream.close rescue nil  # 이미 닫힌 경우 무시
     FileUtils.rm_f(output_path) if output_path
     Rails.logger.debug("[WatermarksController] Cleaned up: #{output_path}")
+  end
+
+  # 파일명을 안전하게 Content-Disposition 헤더로 변환
+  def content_disposition(filename)
+    # 위험한 문자 제거 (CRLF, 따옴표 등)
+    safe_filename = filename.to_s.gsub(/[\r\n"\\]/, "_").strip
+    safe_filename = "download" if safe_filename.empty?
+
+    # RFC 6266 형식: ASCII + UTF-8 fallback
+    ActionDispatch::Http::ContentDisposition.format(
+      disposition: "attachment",
+      filename: safe_filename
+    )
   end
 end
