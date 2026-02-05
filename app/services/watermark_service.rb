@@ -7,6 +7,17 @@ class WatermarkService
   SUPPORTED_IMAGES = %w[.jpg .jpeg .png .bmp .webp].freeze
   SUPPORTED_DOCS = %w[.pdf].freeze
 
+  # MIME Type 검증을 위한 매직 넘버
+  MAGIC_NUMBERS = {
+    "\xFF\xD8\xFF" => :jpeg,
+    "\x89PNG\r\n\x1A\n" => :png,
+    "BM" => :bmp,
+    "RIFF" => :webp,
+    "%PDF" => :pdf
+  }.freeze
+
+  MAX_FILE_SIZE = 50.megabytes
+
   attr_reader :file, :opacity, :scale, :position
 
   def initialize(file:, opacity: 0.3, scale: 1.0, position: "center")
@@ -14,9 +25,20 @@ class WatermarkService
     @opacity = opacity
     @scale = scale
     @position = position
+    @temp_files = []
   end
 
   def process
+    # 파일 크기 검증
+    if file.size > MAX_FILE_SIZE
+      return { success: false, error: "파일 크기가 50MB를 초과합니다." }
+    end
+
+    # MIME Type 검증
+    unless valid_file_type?
+      return { success: false, error: "지원하지 않는 파일 형식이거나 위조된 파일입니다." }
+    end
+
     ext = File.extname(file.original_filename).downcase
 
     if SUPPORTED_IMAGES.include?(ext)
@@ -28,7 +50,9 @@ class WatermarkService
     end
   rescue StandardError => e
     Rails.logger.error("[WatermarkService] Error: #{e.message}")
-    { success: false, error: e.message }
+    { success: false, error: "파일 처리 중 오류가 발생했습니다." }
+  ensure
+    cleanup_temp_files
   end
 
   private
@@ -95,59 +119,6 @@ class WatermarkService
       filename: watermarked_filename(file.original_filename, ".pdf"),
       content_type: "application/pdf"
     }
-  rescue LoadError
-    # combine_pdf가 없으면 Python 스크립트 사용
-    process_pdf_with_python
-  end
-
-  def process_pdf_with_python
-    input_path = save_temp_file(file)
-    output_path = temp_output_path(".pdf")
-
-    script = <<~PYTHON
-      import pymupdf
-      from PIL import Image
-      import io
-
-      doc = pymupdf.open("#{input_path}")
-      wm_img = Image.open("#{WATERMARK_IMAGE}").convert('RGBA')
-
-      # 투명도 조절
-      alpha = wm_img.split()[3]
-      alpha = alpha.point(lambda p: int(p * #{opacity}))
-      wm_img.putalpha(alpha)
-
-      img_bytes = io.BytesIO()
-      wm_img.save(img_bytes, format='PNG')
-      img_bytes.seek(0)
-
-      for page in doc:
-          page_rect = page.rect
-          wm_width = int(page_rect.width * #{scale})
-          wm_height = int(wm_img.height * wm_width / wm_img.width)
-
-          x = (page_rect.width - wm_width) / 2
-          y = (page_rect.height - wm_height) / 2
-
-          wm_rect = pymupdf.Rect(x, y, x + wm_width, y + wm_height)
-          page.insert_image(wm_rect, stream=img_bytes.getvalue())
-
-      doc.save("#{output_path}")
-      doc.close()
-    PYTHON
-
-    system("python3", "-c", script)
-
-    if File.exist?(output_path)
-      {
-        success: true,
-        output_path: output_path,
-        filename: watermarked_filename(file.original_filename, ".pdf"),
-        content_type: "application/pdf"
-      }
-    else
-      { success: false, error: "PDF 처리 실패" }
-    end
   end
 
   def create_watermark_pdf(sample_page)
@@ -191,17 +162,55 @@ class WatermarkService
   def save_temp_file(uploaded_file)
     temp = Tempfile.new(["watermark_input", File.extname(uploaded_file.original_filename)])
     temp.binmode
+    uploaded_file.rewind if uploaded_file.respond_to?(:rewind)
     temp.write(uploaded_file.read)
     temp.close
+    @temp_files << temp.path
     temp.path
   end
 
   def temp_output_path(ext)
+    # output_path는 컨트롤러에서 삭제 담당 (send_data 후 삭제)
     File.join(Dir.tmpdir, "watermark_output_#{SecureRandom.hex(8)}#{ext}")
   end
 
   def watermarked_filename(original, ext)
     name = File.basename(original, ".*")
     "#{name}_watermarked#{ext}"
+  end
+
+  def valid_file_type?
+    file.rewind if file.respond_to?(:rewind)
+    header = file.read(16)
+    file.rewind if file.respond_to?(:rewind)
+
+    return false if header.nil?
+
+    ext = File.extname(file.original_filename).downcase
+
+    # 매직 넘버와 확장자가 일치하는지 확인
+    MAGIC_NUMBERS.any? do |magic, type|
+      next unless header.start_with?(magic.b)
+
+      case type
+      when :jpeg then %w[.jpg .jpeg].include?(ext)
+      when :png then ext == ".png"
+      when :bmp then ext == ".bmp"
+      when :webp then ext == ".webp" && header[8..11] == "WEBP"
+      when :pdf then ext == ".pdf"
+      else false
+      end
+    end
+  end
+
+  def cleanup_temp_files
+    @temp_files.each do |path|
+      next unless path && File.exist?(path)
+
+      File.delete(path)
+      Rails.logger.debug("[WatermarkService] Cleaned up temp file: #{path}")
+    rescue StandardError => e
+      Rails.logger.warn("[WatermarkService] Failed to delete temp file #{path}: #{e.message}")
+    end
   end
 end
