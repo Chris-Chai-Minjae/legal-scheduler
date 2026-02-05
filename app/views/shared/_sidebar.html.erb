@@ -33,7 +33,7 @@
     </div>
 
     <div class="nav-group">
-      <%= link_to "#", class: "nav-item" do %>
+      <%= link_to account_settings_path, class: "nav-item #{current_page?(account_settings_path) ? 'active' : ''}" do %>
         <span>👤</span>
         <span>계정</span>
       <% end %>

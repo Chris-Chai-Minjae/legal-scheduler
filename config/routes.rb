@@ -55,7 +55,14 @@ Rails.application.routes.draw do
   patch "/settings/notifications", to: "settings#update_notifications"
   get "/settings/telegram", to: "settings#telegram", as: :telegram_settings
   post "/settings/telegram/link", to: "settings#link_telegram", as: :link_telegram_settings
+  post "/settings/telegram/test", to: "settings#test_telegram", as: :test_telegram_settings
   delete "/settings/telegram/unlink", to: "settings#unlink_telegram", as: :unlink_telegram_settings
+
+  # Account settings
+  get "/settings/account", to: "settings#account", as: :account_settings
+  patch "/settings/account", to: "settings#update_account"
+  patch "/settings/account/password", to: "settings#update_password", as: :update_password_settings
+  delete "/settings/account", to: "settings#destroy_account", as: :destroy_account_settings
 
   # Telegram webhook
   post "/telegram/webhook", to: "telegram_webhooks#callback"

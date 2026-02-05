@@ -671,7 +671,9 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="logo">
-        <h1>Legal Scheduler AI</h1>
+        <%= link_to dashboard_path, style: "text-decoration: none; color: inherit;" do %>
+          <h1>Legal Scheduler AI</h1>
+        <% end %>
       </div>
 
       <nav class="nav">
@@ -694,16 +696,20 @@
             <span>🔑</span>
             <span>키워드</span>
           <% end %>
-          <%= link_to notifications_settings_path, class: "nav-item #{controller_name == 'settings' ? 'active' : ''}" do %>
+          <%= link_to notifications_settings_path, class: "nav-item #{current_page?(notifications_settings_path) ? 'active' : ''}" do %>
             <span>🔔</span>
             <span>알림</span>
           <% end %>
         </div>
 
         <div class="nav-group">
-          <%= link_to "#", class: "nav-item" do %>
+          <%= link_to account_settings_path, class: "nav-item #{current_page?(account_settings_path) ? 'active' : ''}" do %>
             <span>👤</span>
             <span>계정</span>
+          <% end %>
+          <%= button_to session_path, method: :delete, class: "nav-item", style: "border: none; background: none; width: 100%; text-align: left; cursor: pointer;" do %>
+            <span>🚪</span>
+            <span>로그아웃</span>
           <% end %>
         </div>
       </nav>

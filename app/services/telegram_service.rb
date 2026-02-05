@@ -10,12 +10,18 @@ class TelegramService
 
   def initialize(user)
     @user = user
-    @bot_token = ENV.fetch("TELEGRAM_BOT_TOKEN")
+    # 사용자별 봇 토큰 우선, 없으면 시스템 환경변수 사용
+    @bot_token = user.telegram_bot_token.presence || ENV["TELEGRAM_BOT_TOKEN"]
+  end
+
+  # 봇 토큰이 설정되어 있는지 확인
+  def configured?
+    @bot_token.present? && user.telegram_chat_id.present?
   end
 
   # Send a text message to user's Telegram
   def send_message(text, parse_mode: "HTML", reply_markup: nil)
-    return false unless user.telegram_chat_id.present?
+    return false unless configured?
 
     params = {
       chat_id: user.telegram_chat_id,

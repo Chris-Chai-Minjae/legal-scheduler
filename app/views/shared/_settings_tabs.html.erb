@@ -10,4 +10,6 @@
       class: "tab #{current_page?(telegram_settings_path) ? 'active' : ''}" %>
   <%= link_to "알림", notifications_settings_path,
       class: "tab #{current_page?(notifications_settings_path) ? 'active' : ''}" %>
+  <%= link_to "계정", account_settings_path,
+      class: "tab #{current_page?(account_settings_path) ? 'active' : ''}" %>
 </div>

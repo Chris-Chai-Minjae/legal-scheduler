@@ -24,7 +24,12 @@ class DailyNotificationJob < ApplicationJob
   private
 
   def send_daily_notification(user)
-    return unless user.telegram_chat_id.present?
+    telegram = TelegramService.new(user)
+
+    unless telegram.configured?
+      Rails.logger.warn("[DailyNotificationJob] User #{user.id} Telegram not configured (bot_token: #{user.telegram_bot_token.present?}, chat_id: #{user.telegram_chat_id.present?})")
+      return
+    end
 
     today = Time.current.in_time_zone("Asia/Seoul").to_date
     week_end = today.end_of_week
@@ -44,7 +49,6 @@ class DailyNotificationJob < ApplicationJob
     # 일정이 없으면 알림 생략 (설정에 따라 변경 가능)
     return if schedules_today.empty? && schedules_upcoming.empty? && user.schedules.pending.empty?
 
-    telegram = TelegramService.new(user)
     telegram.send_daily_notification(schedules_today, schedules_upcoming)
 
     Rails.logger.info("[DailyNotificationJob] Sent daily notification to user #{user.id}")

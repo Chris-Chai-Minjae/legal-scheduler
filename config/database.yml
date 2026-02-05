@@ -113,16 +113,20 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    url: <%= ENV["DATABASE_URL"] %>
+    database: <%= ENV.fetch("DB_NAME", "legal_scheduler") %>
+    username: <%= ENV.fetch("DB_USER", "legal_user") %>
+    password: <%= ENV["DB_PASSWORD"] %>
+    host: <%= ENV.fetch("DB_HOST", "localhost") %>
+    port: <%= ENV.fetch("DB_PORT", "5432") %>
   cache:
     <<: *primary_production
-    database: legal_scheduler_cache
+    database: <%= ENV.fetch("DB_NAME", "legal_scheduler") %>_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: legal_scheduler_queue
+    database: <%= ENV.fetch("DB_NAME", "legal_scheduler") %>_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: legal_scheduler_cable
+    database: <%= ENV.fetch("DB_NAME", "legal_scheduler") %>_cable
     migrations_paths: db/cable_migrate

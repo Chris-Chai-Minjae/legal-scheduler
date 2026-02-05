@@ -13,19 +13,22 @@
 <div class="section" style="padding: 32px;">
   <h2 class="section-title">Telegram 연결 상태</h2>
 
-  <% if @user.telegram_chat_id.present? %>
+  <% if @user.telegram_chat_id.present? && @user.telegram_bot_token.present? %>
     <!-- 연결됨 -->
-    <div style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #ECFDF5; border-radius: 12px; margin-bottom: 24px;">
-      <div style="font-size: 48px;">✅</div>
-      <div>
-        <div style="font-weight: 600; color: #065F46; font-size: 18px;">연결됨</div>
-        <div style="color: #047857; font-size: 14px;">Chat ID: <%= @user.telegram_chat_id %></div>
+    <div class="status-box status-connected">
+      <div class="status-icon">✅</div>
+      <div class="status-content">
+        <div class="status-title">연결됨</div>
+        <div class="status-detail">Chat ID: <%= @user.telegram_chat_id %></div>
       </div>
-      <div style="margin-left: auto;">
+      <div class="status-actions">
+        <%= button_to "테스트 메시지 전송", test_telegram_settings_path,
+            method: :post,
+            class: "btn btn-outline" %>
         <%= button_to "연결 해제", unlink_telegram_settings_path,
             method: :delete,
             class: "btn btn-secondary",
-            data: { confirm: "정말 Telegram 연결을 해제하시겠습니까?" } %>
+            data: { turbo_confirm: "정말 Telegram 연결을 해제하시겠습니까?" } %>
       </div>
     </div>
 
@@ -39,46 +42,68 @@
 
   <% else %>
     <!-- 미연결 -->
-    <div style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #FEF3C7; border-radius: 12px; margin-bottom: 24px;">
-      <div style="font-size: 48px;">⚠️</div>
-      <div>
-        <div style="font-weight: 600; color: #92400E; font-size: 18px;">연결되지 않음</div>
-        <div style="color: #B45309; font-size: 14px;">아래 방법으로 Telegram을 연결해주세요</div>
+    <div class="status-box status-warning">
+      <div class="status-icon">⚠️</div>
+      <div class="status-content">
+        <div class="status-title">연결되지 않음</div>
+        <div class="status-detail">아래 정보를 입력하여 Telegram을 연결해주세요</div>
       </div>
     </div>
 
-    <h3 style="margin-bottom: 16px; color: #374151;">연결 방법</h3>
+    <h3 class="subsection-title">연결 방법</h3>
 
-    <div style="background: #F9FAFB; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-      <div style="display: flex; gap: 16px; margin-bottom: 16px;">
-        <div style="width: 32px; height: 32px; background: #2563EB; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">1</div>
-        <div>
-          <div style="font-weight: 500;">Telegram에서 Bot 찾기</div>
-          <div style="color: #6B7280; font-size: 14px;">@MINJAEAI_Bot 검색</div>
+    <div class="steps-container">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <div class="step-title">Telegram에서 BotFather로 봇 생성</div>
+          <div class="step-detail">@BotFather 검색 → /newbot → 봇 이름 입력 → Bot Token 복사</div>
         </div>
       </div>
-      <div style="display: flex; gap: 16px; margin-bottom: 16px;">
-        <div style="width: 32px; height: 32px; background: #2563EB; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">2</div>
-        <div>
-          <div style="font-weight: 500;">/start 명령어 전송</div>
-          <div style="color: #6B7280; font-size: 14px;">Bot과 대화 시작</div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <div class="step-title">Chat ID 확인</div>
+          <div class="step-detail">@userinfobot 검색 → /start → 표시되는 Id가 Chat ID입니다</div>
         </div>
       </div>
-      <div style="display: flex; gap: 16px;">
-        <div style="width: 32px; height: 32px; background: #2563EB; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">3</div>
-        <div>
-          <div style="font-weight: 500;">Chat ID 입력</div>
-          <div style="color: #6B7280; font-size: 14px;">Bot이 알려주는 Chat ID를 아래에 입력하세요</div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <div class="step-title">생성한 봇과 대화 시작</div>
+          <div class="step-detail">생성한 봇을 검색하여 /start 전송 (봇이 메시지를 보낼 수 있게 됨)</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <div class="step-title">아래 정보 입력</div>
+          <div class="step-detail">Bot Token과 Chat ID를 입력하고 연결하기</div>
         </div>
       </div>
     </div>
 
-    <%= form_with url: link_telegram_settings_path, method: :post, local: true do |f| %>
-      <div style="display: flex; gap: 12px; align-items: center;">
-        <%= f.text_field :chat_id,
-            placeholder: "Chat ID 입력 (예: 925514801)",
-            style: "flex: 1; padding: 12px 16px; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px;" %>
-        <%= f.submit "연결하기", class: "btn btn-primary" %>
+    <%= form_with url: link_telegram_settings_path, method: :post, local: true, class: "telegram-form" do %>
+      <div class="form-group">
+        <label for="bot_token">Bot Token</label>
+        <input type="text" name="bot_token" id="bot_token"
+            value="<%= @user.telegram_bot_token %>"
+            placeholder="예: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+            class="form-control" />
+        <span class="form-hint">BotFather에서 받은 토큰을 입력하세요</span>
+      </div>
+
+      <div class="form-group">
+        <label for="chat_id">Chat ID</label>
+        <input type="text" name="chat_id" id="chat_id"
+            value="<%= @user.telegram_chat_id %>"
+            placeholder="예: 925514801"
+            class="form-control" />
+        <span class="form-hint">@userinfobot에서 확인한 숫자를 입력하세요</span>
+      </div>
+
+      <div class="form-actions">
+        <input type="submit" value="연결하기" class="btn btn-primary" />
       </div>
     <% end %>
   <% end %>
@@ -104,6 +129,136 @@
     color: var(--gray-900);
     margin-bottom: 16px;
   }
+  .subsection-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 24px 0 16px;
+  }
+
+  /* Status Box */
+  .status-box {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+  }
+  .status-connected {
+    background: #ECFDF5;
+  }
+  .status-warning {
+    background: #FEF3C7;
+  }
+  .status-icon {
+    font-size: 48px;
+  }
+  .status-content {
+    flex: 1;
+  }
+  .status-title {
+    font-weight: 600;
+    font-size: 18px;
+  }
+  .status-connected .status-title {
+    color: #065F46;
+  }
+  .status-warning .status-title {
+    color: #92400E;
+  }
+  .status-detail {
+    font-size: 14px;
+    margin-top: 2px;
+  }
+  .status-connected .status-detail {
+    color: #047857;
+  }
+  .status-warning .status-detail {
+    color: #B45309;
+  }
+  .status-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* Steps */
+  .steps-container {
+    background: #F9FAFB;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .step {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .step:last-child {
+    margin-bottom: 0;
+  }
+  .step-number {
+    width: 32px;
+    height: 32px;
+    background: #2563EB;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .step-content {
+    padding-top: 4px;
+  }
+  .step-title {
+    font-weight: 500;
+    color: var(--gray-900);
+  }
+  .step-detail {
+    color: #6B7280;
+    font-size: 14px;
+    margin-top: 2px;
+  }
+
+  /* Form */
+  .telegram-form {
+    max-width: 500px;
+  }
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+  .form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+  .form-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--gray-500);
+  }
+  .form-actions {
+    padding-top: 8px;
+  }
+
+  /* Info Box */
   .info-box {
     display: flex;
     gap: 12px;
@@ -120,21 +275,36 @@
     color: var(--gray-700);
     line-height: 1.5;
   }
+
+  /* Buttons */
   .btn {
     padding: 12px 24px;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     border: none;
+    text-decoration: none;
+    display: inline-block;
   }
   .btn-primary {
     background: var(--primary, #2563EB);
     color: white;
   }
+  .btn-primary:hover {
+    background: #1D4ED8;
+  }
   .btn-secondary {
     background: white;
     color: var(--gray-700, #374151);
     border: 1px solid var(--gray-300, #D1D5DB);
+  }
+  .btn-outline {
+    background: transparent;
+    color: #2563EB;
+    border: 1px solid #2563EB;
+  }
+  .btn-outline:hover {
+    background: #EFF6FF;
   }
 </style>

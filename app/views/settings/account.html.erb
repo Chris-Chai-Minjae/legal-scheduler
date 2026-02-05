@@ -1,0 +1,500 @@
+<%# Account Settings Page %>
+
+<% content_for :title, "계정 설정 - Legal Scheduler AI" %>
+
+<div class="settings-header">
+  <h1>계정 설정</h1>
+  <p>프로필 정보와 계정 보안을 관리하세요</p>
+</div>
+
+<!-- Settings Tabs -->
+<%= render "shared/settings_tabs" %>
+
+<!-- Profile Section -->
+<div class="section" style="padding: 32px;">
+  <h2 class="section-title">프로필 정보</h2>
+  <p class="section-subtitle">기본 계정 정보를 수정할 수 있습니다</p>
+
+  <%= form_with url: account_settings_path, method: :patch, class: "profile-form" do |f| %>
+    <div class="form-group">
+      <label for="user_name">이름</label>
+      <%= f.text_field :name, value: @user.name, class: "form-control", id: "user_name", placeholder: "이름을 입력하세요" %>
+    </div>
+
+    <div class="form-group">
+      <label for="user_email">이메일</label>
+      <%= f.email_field :email_address, value: @user.email_address, class: "form-control", id: "user_email" %>
+    </div>
+
+    <div class="form-actions">
+      <%= f.submit "프로필 저장", class: "btn-save" %>
+    </div>
+  <% end %>
+</div>
+
+<!-- Password Section -->
+<div class="section" style="padding: 32px; margin-top: 24px;">
+  <h2 class="section-title">비밀번호 변경</h2>
+  <p class="section-subtitle">계정 보안을 위해 주기적으로 비밀번호를 변경하세요</p>
+
+  <%= form_with url: update_password_settings_path, method: :patch, class: "password-form" do %>
+    <div class="form-group">
+      <label for="current_password">현재 비밀번호</label>
+      <%= password_field_tag :current_password, nil, class: "form-control", id: "current_password", required: true %>
+    </div>
+
+    <div class="form-group">
+      <label for="new_password">새 비밀번호</label>
+      <%= password_field_tag :new_password, nil, class: "form-control", id: "new_password", required: true, minlength: 8 %>
+      <span class="form-hint">8자 이상 입력하세요</span>
+    </div>
+
+    <div class="form-group">
+      <label for="new_password_confirmation">새 비밀번호 확인</label>
+      <%= password_field_tag :new_password_confirmation, nil, class: "form-control", id: "new_password_confirmation", required: true %>
+    </div>
+
+    <div class="form-actions">
+      <%= submit_tag "비밀번호 변경", class: "btn-save" %>
+    </div>
+  <% end %>
+</div>
+
+<!-- Google Account Section -->
+<div class="section" style="padding: 32px; margin-top: 24px;">
+  <h2 class="section-title">연결된 계정</h2>
+  <p class="section-subtitle">외부 서비스 연결 상태</p>
+
+  <div class="connected-accounts">
+    <div class="account-item">
+      <div class="account-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+      </div>
+      <div class="account-content">
+        <div class="account-name">Google 계정</div>
+        <% if @user.google_refresh_token.present? %>
+          <div class="account-status connected">연결됨</div>
+        <% else %>
+          <div class="account-status disconnected">연결 안됨</div>
+        <% end %>
+      </div>
+      <div class="account-action">
+        <% if @user.google_refresh_token.present? %>
+          <span class="badge-connected">활성</span>
+        <% else %>
+          <%= link_to "연결하기", auth_google_path, class: "btn-connect" %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="account-item">
+      <div class="account-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#0088cc">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+        </svg>
+      </div>
+      <div class="account-content">
+        <div class="account-name">Telegram</div>
+        <% if @user.telegram_chat_id.present? %>
+          <div class="account-status connected">연결됨 (ID: <%= @user.telegram_chat_id %>)</div>
+        <% else %>
+          <div class="account-status disconnected">연결 안됨</div>
+        <% end %>
+      </div>
+      <div class="account-action">
+        <%= link_to @user.telegram_chat_id.present? ? "설정" : "연결하기", telegram_settings_path, class: @user.telegram_chat_id.present? ? "btn-settings" : "btn-connect" %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sessions Section -->
+<div class="section" style="padding: 32px; margin-top: 24px;">
+  <h2 class="section-title">활성 세션</h2>
+  <p class="section-subtitle">현재 로그인된 기기 목록</p>
+
+  <div class="sessions-list">
+    <% @sessions.each do |session| %>
+      <div class="session-item <%= session.id == Current.session&.id ? 'current' : '' %>">
+        <div class="session-icon">💻</div>
+        <div class="session-content">
+          <div class="session-info">
+            <span class="session-browser"><%= session.user_agent&.truncate(50) || "알 수 없음" %></span>
+            <% if session.id == Current.session&.id %>
+              <span class="badge-current">현재 세션</span>
+            <% end %>
+          </div>
+          <div class="session-meta">
+            <span>IP: <%= session.ip_address || "알 수 없음" %></span>
+            <span>로그인: <%= l(session.created_at, format: :short) rescue session.created_at %></span>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Danger Zone -->
+<div class="section danger-section" style="padding: 32px; margin-top: 24px;">
+  <h2 class="section-title danger-title">위험 영역</h2>
+  <p class="section-subtitle">계정 삭제는 되돌릴 수 없습니다</p>
+
+  <div class="danger-actions">
+    <div class="danger-item">
+      <div class="danger-content">
+        <div class="danger-label">계정 삭제</div>
+        <div class="danger-description">모든 데이터가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</div>
+      </div>
+      <button type="button" class="btn-danger" onclick="showDeleteModal()">계정 삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div id="deleteModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <h3>계정 삭제 확인</h3>
+    <p>정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없으며, 모든 데이터가 영구적으로 삭제됩니다.</p>
+
+    <%= form_with url: destroy_account_settings_path, method: :delete, class: "delete-form" do %>
+      <div class="form-group">
+        <label for="delete_password">비밀번호 확인</label>
+        <%= password_field_tag :password, nil, class: "form-control", id: "delete_password", required: true, placeholder: "현재 비밀번호를 입력하세요" %>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="hideDeleteModal()">취소</button>
+        <%= submit_tag "계정 삭제", class: "btn-danger-confirm" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+function showDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function hideDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    hideDeleteModal();
+  }
+});
+</script>
+
+<style>
+  .settings-header {
+    margin-bottom: 24px;
+  }
+
+  .settings-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+  }
+
+  .settings-header p {
+    font-size: 14px;
+    color: var(--gray-500);
+  }
+
+  .profile-form, .password-form {
+    max-width: 500px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: 14px;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 14px;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+
+  .form-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--gray-500);
+  }
+
+  .form-actions {
+    padding-top: 16px;
+  }
+
+  /* Connected Accounts */
+  .connected-accounts {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .account-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--gray-50);
+    border-radius: 12px;
+  }
+
+  .account-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .account-content {
+    flex: 1;
+  }
+
+  .account-name {
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+
+  .account-status {
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  .account-status.connected {
+    color: var(--success);
+  }
+
+  .account-status.disconnected {
+    color: var(--gray-500);
+  }
+
+  .badge-connected {
+    padding: 4px 12px;
+    background: #dcfce7;
+    color: #16a34a;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .btn-connect, .btn-settings {
+    padding: 8px 16px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .btn-settings {
+    background: var(--gray-200);
+    color: var(--gray-700);
+  }
+
+  /* Sessions */
+  .sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .session-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--gray-50);
+    border-radius: 12px;
+  }
+
+  .session-item.current {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+  }
+
+  .session-icon {
+    font-size: 24px;
+  }
+
+  .session-content {
+    flex: 1;
+  }
+
+  .session-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .session-browser {
+    font-weight: 500;
+    color: var(--gray-900);
+  }
+
+  .badge-current {
+    padding: 2px 8px;
+    background: var(--primary);
+    color: white;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .session-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--gray-500);
+  }
+
+  /* Danger Zone */
+  .danger-section {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+  }
+
+  .danger-title {
+    color: #dc2626 !important;
+  }
+
+  .danger-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .danger-label {
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+
+  .danger-description {
+    font-size: 13px;
+    color: var(--gray-600);
+    margin-top: 4px;
+  }
+
+  .btn-danger {
+    padding: 10px 20px;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-danger:hover {
+    background: #b91c1c;
+  }
+
+  /* Modal */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    max-width: 450px;
+    width: 90%;
+  }
+
+  .modal-content h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 12px;
+  }
+
+  .modal-content p {
+    color: var(--gray-600);
+    margin-bottom: 24px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  .btn-cancel {
+    padding: 10px 20px;
+    background: var(--gray-200);
+    color: var(--gray-700);
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .btn-danger-confirm {
+    padding: 10px 20px;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    .danger-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .session-meta {
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+</style>

@@ -16,7 +16,9 @@ class CalendarsController < ApplicationController
     @lbox_calendar = Current.user.calendars.find_by(calendar_type: :lbox)
     @work_calendar = Current.user.calendars.find_by(calendar_type: :work)
     @personal_calendar = Current.user.calendars.find_by(calendar_type: :personal)
-    @last_sync = nil  # TODO: Add last_calendar_sync column to settings table
+    # 가장 최근 캘린더 업데이트 시간 또는 OAuth 연결 시간 사용
+    @last_sync = Current.user.calendars.maximum(:updated_at) || Current.user.google_token_expires_at&.-(1.hour)
+    @google_connected = Current.user.google_access_token.present?
   rescue StandardError => e
     flash.now[:alert] = "캘린더를 불러오는데 실패했습니다: #{e.message}"
     @calendars = []

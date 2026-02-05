@@ -17,19 +17,24 @@
   <p class="section-subtitle">캘린더 데이터를 동기화하기 위해 Google 계정을 연결하세요</p>
 
   <div class="google-account">
-    <div class="google-icon">📧</div>
+    <div class="google-icon"><%= @google_connected ? "✅" : "📧" %></div>
     <div class="account-info">
       <div class="account-email"><%= Current.user.email_address %></div>
       <div class="last-sync">
-        <% if @last_sync %>
-          마지막 동기화: <%= l(@last_sync, format: :short) %>
+        <% if @google_connected %>
+          <% if @last_sync %>
+            마지막 동기화: <%= l(@last_sync, format: :short) %>
+          <% else %>
+            연결됨 - 캘린더를 선택해주세요
+          <% end %>
         <% else %>
-          아직 동기화되지 않음
+          아직 연결되지 않음
         <% end %>
       </div>
     </div>
-    <%= button_to "다시 연결하기", refresh_calendars_path,
-        method: :post,
+    <%= button_to @google_connected ? "새로고침" : "연결하기",
+        @google_connected ? refresh_calendars_path : auth_google_path,
+        method: @google_connected ? :post : :get,
         class: "btn-reconnect",
         data: { turbo: false } %>
   </div>
