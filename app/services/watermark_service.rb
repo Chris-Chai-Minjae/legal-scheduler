@@ -25,7 +25,8 @@ class WatermarkService
     @opacity = opacity
     @scale = scale
     @position = position
-    @temp_files = []
+    @temp_files = []      # 입력 임시 파일 (항상 정리)
+    @output_path = nil    # 출력 파일 (실패 시에만 정리)
   end
 
   def process
@@ -41,15 +42,22 @@ class WatermarkService
 
     ext = File.extname(file.original_filename).downcase
 
-    if SUPPORTED_IMAGES.include?(ext)
-      process_image
-    elsif SUPPORTED_DOCS.include?(ext)
-      process_pdf
-    else
-      { success: false, error: "지원하지 않는 파일 형식입니다." }
-    end
+    result = if SUPPORTED_IMAGES.include?(ext)
+               process_image
+             elsif SUPPORTED_DOCS.include?(ext)
+               process_pdf
+             else
+               { success: false, error: "지원하지 않는 파일 형식입니다." }
+             end
+
+    # 실패 시 출력 파일도 정리
+    cleanup_output_on_failure unless result[:success]
+
+    result
   rescue StandardError => e
     Rails.logger.error("[WatermarkService] Error: #{e.message}")
+    Rails.logger.error(e.backtrace.first(5).join("\n"))
+    cleanup_output_on_failure
     { success: false, error: "파일 처리 중 오류가 발생했습니다." }
   ensure
     cleanup_temp_files
@@ -170,8 +178,8 @@ class WatermarkService
   end
 
   def temp_output_path(ext)
-    # output_path는 컨트롤러에서 삭제 담당 (send_data 후 삭제)
-    File.join(Dir.tmpdir, "watermark_output_#{SecureRandom.hex(8)}#{ext}")
+    # output_path 추적 (실패 시 정리용)
+    @output_path = File.join(Dir.tmpdir, "watermark_output_#{SecureRandom.hex(8)}#{ext}")
   end
 
   def watermarked_filename(original, ext)
@@ -205,12 +213,18 @@ class WatermarkService
 
   def cleanup_temp_files
     @temp_files.each do |path|
-      next unless path && File.exist?(path)
+      next unless path
 
-      File.delete(path)
-      Rails.logger.debug("[WatermarkService] Cleaned up temp file: #{path}")
-    rescue StandardError => e
-      Rails.logger.warn("[WatermarkService] Failed to delete temp file #{path}: #{e.message}")
+      # FileUtils.rm_f는 파일이 없어도 예외를 발생시키지 않음
+      FileUtils.rm_f(path)
+      Rails.logger.debug("[WatermarkService] Cleaned up input file: #{path}")
     end
+  end
+
+  def cleanup_output_on_failure
+    return unless @output_path
+
+    FileUtils.rm_f(@output_path)
+    Rails.logger.debug("[WatermarkService] Cleaned up output file on failure: #{@output_path}")
   end
 end
