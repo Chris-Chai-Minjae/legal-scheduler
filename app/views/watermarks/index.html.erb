@@ -1,0 +1,423 @@
+<%= content_for :title, "워터마크 추가" %>
+
+<style>
+  .watermark-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-subtitle {
+    color: #6b7280;
+    font-size: 0.95rem;
+  }
+
+  .upload-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+  }
+
+  .upload-zone {
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    background: #f9fafb;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+  }
+
+  .upload-zone:hover,
+  .upload-zone.dragover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+
+  .upload-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .upload-text {
+    font-size: 1.1rem;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+
+  .upload-hint {
+    font-size: 0.85rem;
+    color: #9ca3af;
+  }
+
+  .file-input {
+    display: none;
+  }
+
+  .selected-file {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f0fdf4;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+  }
+
+  .selected-file.show {
+    display: flex;
+  }
+
+  .file-icon {
+    font-size: 2rem;
+  }
+
+  .file-info {
+    flex: 1;
+  }
+
+  .file-name {
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .file-size {
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
+
+  .remove-file {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #9ca3af;
+    cursor: pointer;
+  }
+
+  .remove-file:hover {
+    color: #ef4444;
+  }
+
+  .settings-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .settings-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
+  }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-input,
+  .form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus,
+  .form-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .range-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .range-input {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    background: #e5e7eb;
+    border-radius: 3px;
+  }
+
+  .range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #3b82f6;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .range-value {
+    min-width: 50px;
+    text-align: right;
+    font-weight: 600;
+    color: #3b82f6;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  }
+
+  .submit-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .format-info {
+    background: #f3f4f6;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .format-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.75rem;
+  }
+
+  .format-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .format-badge {
+    padding: 0.25rem 0.75rem;
+    background: white;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+  }
+
+  .format-badge.image {
+    border-color: #10b981;
+    color: #059669;
+  }
+
+  .format-badge.pdf {
+    border-color: #ef4444;
+    color: #dc2626;
+  }
+</style>
+
+<div class="watermark-container">
+  <div class="page-header">
+    <h1 class="page-title">💧 워터마크 추가</h1>
+    <p class="page-subtitle">이미지나 PDF 파일에 워터마크를 추가하여 다운로드하세요</p>
+  </div>
+
+  <%= form_with url: watermarks_path, method: :post, multipart: true, local: true, id: "watermark-form" do |f| %>
+    <div class="upload-card">
+      <div class="upload-zone" id="upload-zone">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">파일을 드래그하거나 클릭하여 선택</div>
+        <div class="upload-hint">이미지 (JPG, PNG) 또는 PDF 파일</div>
+      </div>
+
+      <input type="file" name="file" id="file-input" class="file-input"
+             accept=".jpg,.jpeg,.png,.bmp,.webp,.pdf">
+
+      <div class="selected-file" id="selected-file">
+        <span class="file-icon" id="file-icon">📄</span>
+        <div class="file-info">
+          <div class="file-name" id="file-name">파일명</div>
+          <div class="file-size" id="file-size">0 KB</div>
+        </div>
+        <button type="button" class="remove-file" id="remove-file">×</button>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-title">⚙️ 워터마크 설정</div>
+        <div class="settings-grid">
+          <div class="form-group">
+            <label class="form-label">투명도</label>
+            <div class="range-container">
+              <input type="range" name="opacity" class="range-input" id="opacity-input"
+                     min="10" max="100" value="30">
+              <span class="range-value" id="opacity-value">30%</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">크기</label>
+            <div class="range-container">
+              <input type="range" name="scale" class="range-input" id="scale-input"
+                     min="20" max="150" value="100">
+              <span class="range-value" id="scale-value">100%</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">위치</label>
+            <select name="position" class="form-select">
+              <option value="center">중앙</option>
+              <option value="bottom-right">우하단</option>
+              <option value="bottom-left">좌하단</option>
+              <option value="top-right">우상단</option>
+              <option value="top-left">좌상단</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn" disabled>
+        <span>💧</span>
+        <span>워터마크 추가 및 다운로드</span>
+      </button>
+    </div>
+  <% end %>
+
+  <div class="format-info">
+    <div class="format-title">지원 파일 형식</div>
+    <div class="format-list">
+      <span class="format-badge image">JPG</span>
+      <span class="format-badge image">JPEG</span>
+      <span class="format-badge image">PNG</span>
+      <span class="format-badge image">BMP</span>
+      <span class="format-badge image">WebP</span>
+      <span class="format-badge pdf">PDF</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('file-input');
+    const selectedFile = document.getElementById('selected-file');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const fileIcon = document.getElementById('file-icon');
+    const removeFile = document.getElementById('remove-file');
+    const submitBtn = document.getElementById('submit-btn');
+    const opacityInput = document.getElementById('opacity-input');
+    const opacityValue = document.getElementById('opacity-value');
+    const scaleInput = document.getElementById('scale-input');
+    const scaleValue = document.getElementById('scale-value');
+
+    // 드래그 앤 드롭
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        updateFileInfo(e.dataTransfer.files[0]);
+      }
+    });
+
+    // 파일 선택
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        updateFileInfo(e.target.files[0]);
+      }
+    });
+
+    // 파일 정보 업데이트
+    function updateFileInfo(file) {
+      fileName.textContent = file.name;
+      fileSize.textContent = formatFileSize(file.size);
+
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext === 'pdf') {
+        fileIcon.textContent = '📕';
+      } else {
+        fileIcon.textContent = '🖼️';
+      }
+
+      selectedFile.classList.add('show');
+      uploadZone.style.display = 'none';
+      submitBtn.disabled = false;
+    }
+
+    // 파일 크기 포맷
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    // 파일 제거
+    removeFile.addEventListener('click', () => {
+      fileInput.value = '';
+      selectedFile.classList.remove('show');
+      uploadZone.style.display = 'block';
+      submitBtn.disabled = true;
+    });
+
+    // 슬라이더 값 업데이트
+    opacityInput.addEventListener('input', () => {
+      opacityValue.textContent = opacityInput.value + '%';
+    });
+
+    scaleInput.addEventListener('input', () => {
+      scaleValue.textContent = scaleInput.value + '%';
+    });
+  });
+</script>

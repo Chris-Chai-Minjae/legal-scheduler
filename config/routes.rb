@@ -40,6 +40,9 @@ Rails.application.routes.draw do
     end
   end
 
+  # Watermark tool
+  resources :watermarks, only: [:index, :create]
+
   # Schedules list and detail (T4.2)
   resources :schedules, only: [:index, :show, :edit, :update, :destroy] do
     collection do

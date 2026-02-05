@@ -17,6 +17,14 @@
     <% end %>
 
     <div class="nav-group">
+      <div class="nav-group-title">도구</div>
+      <%= link_to watermarks_path, class: "nav-item #{controller_name == 'watermarks' ? 'active' : ''}" do %>
+        <span>💧</span>
+        <span>워터마크</span>
+      <% end %>
+    </div>
+
+    <div class="nav-group">
       <div class="nav-group-title">설정</div>
       <%= link_to calendars_path, class: "nav-item #{current_page?(calendars_path) ? 'active' : ''}" do %>
         <span>📅</span>
