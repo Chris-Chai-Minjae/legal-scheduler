@@ -39,5 +39,12 @@ module LegalScheduler
     # T4.1 - Set Korean locale
     config.i18n.default_locale = :ko
     config.time_zone = "Seoul"
+
+    # Active Record Encryption 설정
+    # 프로덕션에서는 Rails credentials 또는 환경 변수 사용
+    # rails db:encryption:init 으로 키 생성 후 credentials에 저장
+    config.active_record.encryption.primary_key = ENV.fetch("ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY") { Rails.application.credentials.dig(:active_record_encryption, :primary_key) || "dev_primary_key_32_bytes_long_xx" }
+    config.active_record.encryption.deterministic_key = ENV.fetch("ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY") { Rails.application.credentials.dig(:active_record_encryption, :deterministic_key) || "dev_deterministic_key_32_bytes_x" }
+    config.active_record.encryption.key_derivation_salt = ENV.fetch("ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT") { Rails.application.credentials.dig(:active_record_encryption, :key_derivation_salt) || "dev_key_derivation_salt_value_xx" }
   end
 end

@@ -11,11 +11,12 @@ class User < ApplicationRecord
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
-  # OAuth and Telegram tokens (encryption disabled for now)
-  # TODO: Enable encryption with proper key management
+  # OAuth and Telegram tokens - 보안을 위해 암호화 적용
+  # Rails 8 Active Record Encryption 사용
+  encrypts :telegram_bot_token, deterministic: true
+  # TODO: Google OAuth 토큰도 암호화 필요
   # encrypts :google_access_token
   # encrypts :google_refresh_token
-  # encrypts :telegram_bot_token
 
   # Validations
   validates :email_address, presence: true, uniqueness: true

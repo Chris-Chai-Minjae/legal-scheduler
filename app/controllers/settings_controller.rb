@@ -3,7 +3,12 @@
 
 class SettingsController < ApplicationController
   before_action :require_authentication
+  before_action :load_recent_sessions, only: %i[account update_account]
   layout "dashboard"
+
+  # 비밀번호 변경 시도 제한 (브루트포스 방지)
+  rate_limit to: 5, within: 1.hour, only: :update_password,
+    with: -> { redirect_to account_settings_path, alert: "비밀번호 변경 시도가 너무 많습니다. 1시간 후 다시 시도해주세요." }
 
   def notifications
     @user = Current.user
@@ -13,7 +18,6 @@ class SettingsController < ApplicationController
   # 계정 설정 페이지
   def account
     @user = Current.user
-    @sessions = Session.where(user_id: @user.id).order(created_at: :desc).limit(5)
   end
 
   # 프로필 업데이트
@@ -23,7 +27,6 @@ class SettingsController < ApplicationController
     if @user.update(account_params)
       redirect_to account_settings_path, notice: "프로필이 업데이트되었습니다."
     else
-      @sessions = Session.where(user_id: @user.id).order(created_at: :desc).limit(5)
       render :account, status: :unprocessable_entity
     end
   end
@@ -95,18 +98,13 @@ class SettingsController < ApplicationController
       return
     end
 
-    # Send test message
-    result = send_telegram_message(
-      @user.telegram_bot_token,
-      @user.telegram_chat_id,
+    # 백그라운드에서 메시지 전송 (응답 지연 방지)
+    SendTelegramMessageJob.perform_later(
+      @user.id,
       "Legal Scheduler AI 테스트 메시지입니다.\n연결이 정상적으로 완료되었습니다! 🎉"
     )
 
-    if result[:ok]
-      redirect_to telegram_settings_path, notice: "테스트 메시지가 전송되었습니다!"
-    else
-      redirect_to telegram_settings_path, alert: "메시지 전송 실패: #{result[:description]}"
-    end
+    redirect_to telegram_settings_path, notice: "테스트 메시지를 전송 중입니다. 잠시 후 Telegram을 확인해주세요."
   end
 
   def update_notifications
@@ -140,15 +138,8 @@ class SettingsController < ApplicationController
     "LINK-#{Current.user.id}-#{SecureRandom.hex(4).upcase}"
   end
 
-  def send_telegram_message(bot_token, chat_id, text)
-    uri = URI("https://api.telegram.org/bot#{bot_token}/sendMessage")
-    response = Net::HTTP.post_form(uri, {
-      chat_id: chat_id,
-      text: text,
-      parse_mode: "HTML"
-    })
-    JSON.parse(response.body, symbolize_names: true)
-  rescue => e
-    { ok: false, description: e.message }
+  # 최근 세션 목록 로드 (account 페이지용)
+  def load_recent_sessions
+    @sessions = Session.where(user_id: Current.user.id).order(created_at: :desc).limit(5)
   end
 end

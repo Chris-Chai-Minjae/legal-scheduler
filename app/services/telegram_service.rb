@@ -142,6 +142,9 @@ class TelegramService
     uri = URI("#{BASE_URL}#{@bot_token}/#{method}")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
+    # 타임아웃 설정 (네트워크 지연으로 인한 응답 지연 방지)
+    http.open_timeout = 10  # 연결 타임아웃 10초
+    http.read_timeout = 15  # 읽기 타임아웃 15초
 
     request = Net::HTTP::Post.new(uri)
     request["Content-Type"] = "application/json"
@@ -149,5 +152,11 @@ class TelegramService
 
     response = http.request(request)
     JSON.parse(response.body)
+  rescue Net::OpenTimeout, Net::ReadTimeout => e
+    Rails.logger.error("[TelegramService] Timeout for user #{user.id}")
+    { "ok" => false, "description" => "네트워크 타임아웃" }
+  rescue JSON::ParserError => e
+    Rails.logger.error("[TelegramService] JSON parse error for user #{user.id}")
+    { "ok" => false, "description" => "응답 파싱 오류" }
   end
 end
