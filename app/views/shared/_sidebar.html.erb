@@ -51,7 +51,7 @@
         <span>👤</span>
         <span>계정</span>
       <% end %>
-      <%= button_to "로그아웃", session_path, method: :delete, class: "nav-item", style: "border: none; background: none; width: 100%; text-align: left;" do %>
+      <%= button_to session_path, method: :delete, class: "nav-item", style: "border: none; background: none; width: 100%; text-align: left; cursor: pointer;" do %>
         <span>🚪</span>
         <span>로그아웃</span>
       <% end %>
