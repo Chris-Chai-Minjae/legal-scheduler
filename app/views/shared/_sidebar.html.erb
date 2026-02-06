@@ -3,7 +3,9 @@
 
 <div class="sidebar">
   <div class="logo">
-    <h1>Legal Scheduler AI</h1>
+    <%= link_to dashboard_path, style: "text-decoration: none; color: inherit;" do %>
+      <h1>Legal Scheduler AI</h1>
+    <% end %>
   </div>
 
   <nav class="nav">
@@ -33,6 +35,10 @@
       <%= link_to keywords_path, class: "nav-item #{current_page?(keywords_path) ? 'active' : ''}" do %>
         <span>🔑</span>
         <span>키워드</span>
+      <% end %>
+      <%= link_to telegram_settings_path, class: "nav-item #{current_page?(telegram_settings_path) ? 'active' : ''}" do %>
+        <span>✈️</span>
+        <span>Telegram</span>
       <% end %>
       <%= link_to notifications_settings_path, class: "nav-item #{current_page?(notifications_settings_path) rescue false ? 'active' : ''}" do %>
         <span>🔔</span>
