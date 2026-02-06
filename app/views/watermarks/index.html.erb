@@ -262,7 +262,7 @@
     <p class="page-subtitle">이미지나 PDF 파일에 워터마크를 추가하여 다운로드하세요</p>
   </div>
 
-  <%= form_with url: watermarks_path, method: :post, multipart: true, local: true, id: "watermark-form" do |f| %>
+  <%= form_with url: watermarks_path, method: :post, multipart: true, data: { turbo: false }, id: "watermark-form" do |f| %>
     <div class="upload-card">
       <div class="upload-zone" id="upload-zone">
         <div class="upload-icon">📁</div>
