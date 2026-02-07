@@ -1,0 +1,127 @@
+<%# @TASK P2-S3-T1 - Blog Post Detail/Edit View %>
+<%# @SPEC Blog AI Dashboard - Inline editing with AI chat %>
+
+<div class="blog-header">
+  <div>
+    <h1>
+      <span class="blog-status-badge <%= @post.status %>">
+        <% case @post.status %>
+        <% when 'draft' %>
+          📝 초안
+        <% when 'generating' %>
+          ⚡ 생성 중
+        <% when 'completed' %>
+          ✅ 완료
+        <% when 'published' %>
+          🌐 발행됨
+        <% end %>
+      </span>
+      <%= @post.title %>
+    </h1>
+    <p style="color: var(--gray-500); font-size: 14px; margin-top: 4px;">
+      <%= l(@post.created_at, format: :long) %> 작성
+    </p>
+  </div>
+  <div class="blog-header-actions"
+       data-controller="ai-chat">
+    <button class="btn btn-secondary" data-action="click->blog-editor#copy">
+      📋 복사
+    </button>
+    <button class="btn btn-secondary"
+            data-action="click->streaming#start">
+      🔄 재생성
+    </button>
+    <%= button_to "🗑 삭제", blog_post_path(@post),
+        method: :delete,
+        class: "btn btn-danger",
+        data: { turbo_confirm: "정말 삭제하시겠습니까?" } %>
+    <button class="btn btn-primary"
+            data-action="click->ai-chat#toggle">
+      🤖 AI 채팅
+    </button>
+  </div>
+</div>
+
+<div class="blog-editor"
+     data-controller="blog-editor streaming"
+     data-blog-editor-post-id-value="<%= @post.id %>"
+     data-blog-editor-save-url-value="<%= blog_post_path(@post) %>"
+     data-streaming-url-value="<%= regenerate_blog_post_path(@post) %>">
+
+  <!-- 제목 (인라인 편집) -->
+  <div class="blog-editor-title"
+       contenteditable="true"
+       data-blog-editor-target="title"
+       data-action="input->blog-editor#contentChanged keydown->blog-editor#preventLineBreak"><%= @post.title %></div>
+
+  <!-- 본문 (인라인 편집) -->
+  <div class="blog-editor-content"
+       contenteditable="true"
+       data-blog-editor-target="content"
+       data-streaming-target="output"
+       data-action="input->blog-editor#contentChanged"><%= simple_format(@post.content) %></div>
+
+  <!-- 스트리밍 커서 (재생성 시) -->
+  <span data-streaming-target="cursor" class="streaming-cursor" style="display: none;"></span>
+
+  <!-- 자동저장 상태 -->
+  <div data-blog-editor-target="status" class="blog-editor-status"></div>
+
+  <!-- 재생성 상태 (streaming controller용) -->
+  <div data-streaming-target="status" class="streaming-status"></div>
+</div>
+
+<!-- 메타정보 -->
+<div class="section" style="margin-top: 24px;">
+  <h3 class="section-title">글 정보</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+    <div>
+      <p class="label">프롬프트</p>
+      <p style="color: var(--gray-700);"><%= @post.prompt %></p>
+    </div>
+    <div>
+      <p class="label">톤</p>
+      <p style="color: var(--gray-700);">
+        <% case @post.tone %>
+        <% when 'professional' %>
+          🎯 전문적
+        <% when 'easy' %>
+          😊 쉬운
+        <% when 'storytelling' %>
+          📖 스토리텔링
+        <% end %>
+      </p>
+    </div>
+    <div>
+      <p class="label">길이</p>
+      <p style="color: var(--gray-700);">
+        <% case @post.length_setting %>
+        <% when 'short' %>
+          짧은 (500자 내외)
+        <% when 'medium' %>
+          보통 (1000자 내외)
+        <% when 'long' %>
+          긴 (2000자 이상)
+        <% end %>
+      </p>
+    </div>
+    <div>
+      <p class="label">상태</p>
+      <span class="blog-status-badge <%= @post.status %>">
+        <% case @post.status %>
+        <% when 'draft' %>
+          📝 초안
+        <% when 'generating' %>
+          ⚡ 생성 중
+        <% when 'completed' %>
+          ✅ 완료
+        <% when 'published' %>
+          🌐 발행됨
+        <% end %>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- AI 채팅 팝업 -->
+<%= render "blog/posts/ai_chat" %>
