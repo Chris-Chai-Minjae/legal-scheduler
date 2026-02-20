@@ -67,8 +67,11 @@ class HwpxGeneratorService
 
     return if template_paras.nil? || template_paras.empty?
 
-    # Remove only template paragraphs (preserve header paras before TEMPLATE_PARA_RANGE)
-    template_paras.each(&:remove)
+    # Remove template paragraphs AND any trailing paragraphs after template range
+    # (stale sample rows in the original template)
+    all_paras.each_with_index do |para, i|
+      para.remove if i >= TEMPLATE_PARA_RANGE.begin
+    end
 
     # Generate one page per expense
     @expenses.each_with_index do |expense, idx|

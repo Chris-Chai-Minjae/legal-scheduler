@@ -52,7 +52,9 @@ module Expenses
       )
 
       if report.save
-        verified_expenses.each_with_index do |expense, idx|
+        # 사용자가 선택한 순서(expense_ids) 보존
+        ordered_expenses = expense_ids.map { |id| verified_expenses.find { |e| e.id == id.to_i } }.compact
+        ordered_expenses.each_with_index do |expense, idx|
           report.expense_report_items.create!(
             expense_id: expense.id,
             position: idx + 1

@@ -10,6 +10,7 @@ class ExpenseClassifyJob < ApplicationJob
     statement.update!(status: :classifying)
 
     expenses = statement.expenses.pending
+    initial_count = expenses.count
     failure_count = 0
 
     expenses.find_each do |expense|
@@ -48,13 +49,13 @@ class ExpenseClassifyJob < ApplicationJob
     end
 
     # 전체 실패 시 failed, 부분 실패 시 completed (로그에 실패 건수 기록)
-    if failure_count == expenses.count && expenses.count > 0
+    if failure_count == initial_count && initial_count > 0
       statement.reload
-      statement.update!(status: :failed, error_message: "전체 #{expenses.count}건 분류 실패")
+      statement.update!(status: :failed, error_message: "전체 #{initial_count}건 분류 실패")
     else
       statement.reload
       if failure_count > 0
-        Rails.logger.warn("[ExpenseClassifyJob] Statement #{statement.id}: #{failure_count}/#{expenses.count}건 분류 실패")
+        Rails.logger.warn("[ExpenseClassifyJob] Statement #{statement.id}: #{failure_count}/#{initial_count}건 분류 실패")
       end
       statement.update!(status: :completed)
     end
