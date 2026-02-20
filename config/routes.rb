@@ -70,6 +70,29 @@ Rails.application.routes.draw do
   # Telegram webhook
   post "/telegram/webhook", to: "telegram_webhooks#callback"
 
+  # Blog AI Writer
+  namespace :blog do
+    resources :posts, except: [:new] do
+      member do
+        post :regenerate
+      end
+      resources :chats, only: [:create], controller: "chats"
+    end
+    get "write", to: "posts#new", as: :write
+    resources :documents, only: [:index, :create, :destroy]
+  end
+
+  # Expense Management (비용 회계 + 지출결의서)
+  namespace :expenses do
+    resources :card_statements, only: [:index, :show, :create, :destroy]
+    resources :items, only: [:index, :show, :edit, :update]
+    resources :reports, only: [:index, :show, :new, :create] do
+      member do
+        get :download
+      end
+    end
+  end
+
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 

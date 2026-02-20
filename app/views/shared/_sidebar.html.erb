@@ -24,6 +24,30 @@
         <span>💧</span>
         <span>워터마크</span>
       <% end %>
+      <%= link_to expenses_card_statements_path, class: "nav-item #{controller_path.start_with?('expenses/card_statements') || controller_path == 'expenses/items' ? 'active' : ''}" do %>
+        <span>💰</span>
+        <span>비용 회계</span>
+      <% end %>
+      <%= link_to expenses_reports_path, class: "nav-item #{controller_path == 'expenses/reports' ? 'active' : ''}" do %>
+        <span>📑</span>
+        <span>지출결의서</span>
+      <% end %>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">블로그 AI</div>
+      <%= link_to blog_write_path, class: "nav-item #{current_page?(blog_write_path) ? 'active' : ''}" do %>
+        <span>✍️</span>
+        <span>글 작성</span>
+      <% end %>
+      <%= link_to blog_posts_path, class: "nav-item #{controller_name == 'posts' && controller_path == 'blog/posts' ? 'active' : ''}" do %>
+        <span>📝</span>
+        <span>블로그 글</span>
+      <% end %>
+      <%= link_to blog_documents_path, class: "nav-item #{controller_name == 'documents' && controller_path == 'blog/documents' ? 'active' : ''}" do %>
+        <span>📄</span>
+        <span>참고 문서</span>
+      <% end %>
     </div>
 
     <div class="nav-group">

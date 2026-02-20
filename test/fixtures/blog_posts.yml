@@ -1,0 +1,25 @@
+one:
+  user: one
+  title: 테스트 블로그 글
+  content: 법률 관련 블로그 콘텐츠입니다.
+  prompt: 법률 블로그를 작성해주세요
+  tone: 0
+  length_setting: 1
+  status: 2
+
+two:
+  user: two
+  title: 다른 사용자의 글
+  content: 다른 사용자가 작성한 콘텐츠입니다.
+  prompt: 다른 사용자의 프롬프트
+  tone: 0
+  length_setting: 1
+  status: 2
+
+draft_post:
+  user: one
+  title: 초안 글
+  prompt: 초안 블로그 작성
+  tone: 1
+  length_setting: 0
+  status: 0

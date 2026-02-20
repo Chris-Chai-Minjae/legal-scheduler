@@ -1,0 +1,287 @@
+<%# @TASK P2-S2-T1 - Blog post writing main view %>
+<%# @SPEC Blog AI Dashboard - 2-column layout with prompt form + document upload %>
+
+<% content_for :title, "새 글 작성 - Blog AI" %>
+
+<!-- Blog Header -->
+<div class="blog-header">
+  <h1>✍️ 새 글 작성</h1>
+  <div class="blog-header-actions">
+    <%= link_to "← 목록으로", blog_posts_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<!-- Two Column Layout -->
+<div style="display: grid; grid-template-columns: 70% 30%; gap: 24px; align-items: start;">
+
+  <!-- Left Column: Prompt Form -->
+  <div>
+    <div class="blog-prompt-form">
+      <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--gray-900);">
+        📝 글 작성 설정
+      </h2>
+
+      <%= form_with model: @post, url: blog_posts_path, id: "post_form", data: { turbo: false } do |f| %>
+        <!-- Prompt -->
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label class="label" style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--gray-700);">
+            글 주제 <span style="color: var(--danger);">*</span>
+          </label>
+          <%= f.text_area :prompt,
+              class: "blog-prompt-textarea",
+              placeholder: "어떤 주제로 글을 작성할까요?\n예: 변호사의 AI 활용법에 대해 작성해주세요",
+              rows: 4,
+              required: true,
+              style: "margin-bottom: 8px;" %>
+          <div style="font-size: 12px; color: var(--gray-500);">
+            💡 구체적으로 작성할수록 더 좋은 결과를 얻을 수 있습니다.
+          </div>
+        </div>
+
+        <!-- Tone Selector -->
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label class="label" style="display: block; font-weight: 500; margin-bottom: 12px; color: var(--gray-700);">
+            글 톤
+          </label>
+          <div class="blog-tone-selector">
+            <div class="blog-tone-option">
+              <%= f.radio_button :tone, "professional", checked: true, id: "tone_professional" %>
+              <%= label_tag "tone_professional", "🎯 전문적", class: "blog-tone-label" %>
+            </div>
+            <div class="blog-tone-option">
+              <%= f.radio_button :tone, "easy", id: "tone_easy" %>
+              <%= label_tag "tone_easy", "😊 쉬운", class: "blog-tone-label" %>
+            </div>
+            <div class="blog-tone-option">
+              <%= f.radio_button :tone, "storytelling", id: "tone_storytelling" %>
+              <%= label_tag "tone_storytelling", "📖 스토리텔링", class: "blog-tone-label" %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Length Selector -->
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label class="label" style="display: block; font-weight: 500; margin-bottom: 12px; color: var(--gray-700);">
+            글 길이
+          </label>
+          <div class="blog-length-selector">
+            <div class="blog-length-option">
+              <%= f.radio_button :length_setting, "short", id: "length_short" %>
+              <%= label_tag "length_short", "짧은 (1,000자)", class: "blog-length-label" %>
+            </div>
+            <div class="blog-length-option">
+              <%= f.radio_button :length_setting, "medium", checked: true, id: "length_medium" %>
+              <%= label_tag "length_medium", "보통 (2,000자)", class: "blog-length-label" %>
+            </div>
+            <div class="blog-length-option">
+              <%= f.radio_button :length_setting, "long", id: "length_long" %>
+              <%= label_tag "length_long", "긴 (4,000자)", class: "blog-length-label" %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Title (Optional) -->
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label class="label" style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--gray-700);">
+            제목 (선택사항)
+          </label>
+          <%= f.text_field :title,
+              class: "input",
+              placeholder: "제목을 직접 입력하거나 비워두면 AI가 생성합니다" %>
+          <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">
+            ℹ️ 비워두면 AI가 자동으로 제목을 생성합니다.
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <%= button_tag type: "submit", class: "btn btn-primary", style: "width: 100%;" do %>
+          ✨ AI로 작성하기
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Streaming Output Area (Initially Hidden) -->
+    <div id="streaming-output" style="display: none; margin-top: 24px;"
+         data-controller="streaming"
+         data-streaming-url-value="">
+      <div class="blog-editor">
+        <h2 data-streaming-target="title"
+            class="blog-editor-title"
+            contenteditable="true"
+            style="margin-bottom: 24px;"></h2>
+        <div data-streaming-target="output"
+             class="blog-editor-content"
+             style="white-space: pre-wrap;"></div>
+        <span data-streaming-target="cursor"
+              class="streaming-cursor"
+              style="display: none;"></span>
+      </div>
+
+      <div class="blog-header-actions" style="margin-top: 24px; justify-content: flex-start;">
+        <%= button_tag "📋 복사",
+            type: "button",
+            class: "btn btn-secondary",
+            data: { action: "click->streaming#copy" } %>
+        <%= button_tag "🔄 재생성",
+            type: "button",
+            class: "btn btn-secondary",
+            data: { action: "click->streaming#regenerate" } %>
+        <%= link_to "💾 저장 완료",
+            "#",
+            class: "btn btn-primary",
+            data: { streaming_target: "saveLink" },
+            style: "margin-left: auto;" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Reference Documents Upload -->
+  <div>
+    <div class="blog-prompt-form" data-controller="file-upload">
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--gray-900);">
+        📄 참고 문서
+      </h3>
+
+      <%= form_with url: blog_documents_path,
+          method: :post,
+          data: { file_upload_target: "form" },
+          multipart: true do |f| %>
+
+        <!-- Dropzone -->
+        <div class="file-dropzone"
+             data-file-upload-target="dropzone"
+             data-action="dragover->file-upload#dragover dragleave->file-upload#dragleave drop->file-upload#drop click->file-upload#click">
+          <div class="file-dropzone-icon">📁</div>
+          <div class="file-dropzone-text">파일을 끌어다 놓으세요</div>
+          <div class="file-dropzone-hint">또는 클릭하여 선택</div>
+          <div class="file-dropzone-hint" style="margin-top: 8px;">
+            PDF, DOCX, HWP (최대 50MB)
+          </div>
+        </div>
+
+        <!-- Hidden File Input -->
+        <%= f.file_field :file,
+            accept: ".pdf,.docx,.hwp",
+            data: {
+              file_upload_target: "input",
+              action: "change->file-upload#select"
+            },
+            style: "display: none;" %>
+
+        <!-- Tag Selector -->
+        <div style="margin-top: 16px;">
+          <label class="label" style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--gray-700);">
+            태그
+          </label>
+          <%= f.select :tag,
+              options_for_select([
+                ["태그 없음", ""],
+                ["판례", "판례"],
+                ["법령", "법령"],
+                ["논문", "논문"],
+                ["기타", "기타"]
+              ]),
+              {},
+              class: "select" %>
+        </div>
+
+        <!-- File Preview Area -->
+        <div class="file-preview" data-file-upload-target="preview"></div>
+
+        <!-- Info Box -->
+        <div class="info-box" style="margin-top: 16px;">
+          <div class="info-icon">💡</div>
+          <div class="info-text">
+            업로드한 문서는 AI가 참고하여 더 전문적인 내용을 작성합니다.
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Form submission handler
+  document.getElementById('post_form').addEventListener('submit', async (e) => {
+    e.preventDefault()
+
+    const form = e.target
+    const formData = new FormData(form)
+    const submitButton = form.querySelector('button[type="submit"]')
+
+    // Disable submit button
+    submitButton.disabled = true
+    submitButton.innerHTML = '⏳ 생성 중...'
+
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+          'Accept': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+
+        // Show streaming output area
+        const outputArea = document.getElementById('streaming-output')
+        outputArea.style.display = 'block'
+
+        // Scroll to output
+        outputArea.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+        // Set title (if generated)
+        const titleElement = outputArea.querySelector('[data-streaming-target="title"]')
+        titleElement.textContent = data.title || formData.get('blog_post[title]') || 'AI 생성 제목'
+
+        // Set content
+        const contentElement = outputArea.querySelector('[data-streaming-target="output"]')
+        contentElement.textContent = data.content || '콘텐츠를 생성하는 중입니다...'
+
+        // Update save link
+        const saveLink = outputArea.querySelector('[data-streaming-target="saveLink"]')
+        if (data.id) {
+          saveLink.href = `/blog/posts/${data.id}`
+        }
+
+        // Show success message
+        alert('✅ 글이 생성되었습니다!')
+      } else {
+        throw new Error('생성 실패')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('❌ 글 생성 중 오류가 발생했습니다. 다시 시도해주세요.')
+    } finally {
+      // Re-enable submit button
+      submitButton.disabled = false
+      submitButton.innerHTML = '✨ AI로 작성하기'
+    }
+  })
+</script>
+
+<style>
+  /* Form Group */
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  .label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--gray-700);
+    font-size: 14px;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    /* Stack columns on smaller screens */
+    [style*="grid-template-columns: 70% 30%"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>

@@ -8,6 +8,12 @@ class User < ApplicationRecord
   has_many :schedules, through: :calendars
   has_many :keywords, dependent: :destroy
   has_one :settings, dependent: :destroy
+  has_many :blog_posts, dependent: :destroy
+  has_many :blog_documents, dependent: :destroy
+  has_many :blog_chats, dependent: :destroy
+  has_many :card_statements, dependent: :destroy
+  has_many :expenses, dependent: :destroy
+  has_many :expense_reports, dependent: :destroy
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 

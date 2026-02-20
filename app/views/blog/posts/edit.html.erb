@@ -1,0 +1,13 @@
+<%# @TASK P2-S3-T1 - Blog Post Edit Form (Traditional) %>
+<%# @SPEC Blog AI Dashboard - Fallback form editing %>
+
+<div class="blog-header">
+  <h1>글 편집</h1>
+  <div class="blog-header-actions">
+    <%= link_to "← 돌아가기", blog_post_path(@post), class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<div class="blog-prompt-form">
+  <%= render "form", post: @post %>
+</div>

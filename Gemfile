@@ -55,6 +55,13 @@ gem "mini_magick"
 gem "combine_pdf"
 gem "prawn"
 
+# Excel file reading
+gem "roo", "~> 2.10"
+# ZIP manipulation for HWPX
+gem "rubyzip", "~> 2.3"
+# CSV support (Ruby 4.0 준비)
+gem "csv"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri mingw mswin x64_mingw ], require: "debug/prelude"
@@ -78,4 +85,7 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+
+  # HTTP request mocking for integration tests
+  gem "webmock"
 end

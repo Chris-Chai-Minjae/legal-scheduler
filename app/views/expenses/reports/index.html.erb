@@ -1,0 +1,65 @@
+<%= content_for :title, "지출결의서" %>
+
+<style>
+  .reports-container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+  .reports-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+  .reports-title { font-size: 1.75rem; font-weight: 700; color: #1a1a2e; }
+  .btn-new { padding: 0.75rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .btn-new:hover { background: #1d4ed8; }
+
+  .reports-card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .report-item { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 1rem; transition: all 0.2s; }
+  .report-item:hover { border-color: #3b82f6; background: #f8fafc; }
+  .report-icon { font-size: 2.5rem; }
+  .report-info { flex: 1; }
+  .report-title { font-weight: 600; color: #1f2937; font-size: 1rem; }
+  .report-meta { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+  .report-actions { display: flex; gap: 0.75rem; align-items: center; }
+  .btn-download { padding: 0.5rem 1rem; background: #059669; color: white; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .btn-download:hover { background: #047857; }
+  .btn-view { padding: 0.5rem 1rem; background: white; color: #3b82f6; border: 1px solid #3b82f6; border-radius: 8px; font-size: 0.85rem; font-weight: 500; text-decoration: none; }
+  .btn-view:hover { background: #eff6ff; }
+</style>
+
+<div class="reports-container">
+  <div class="reports-header">
+    <h1 class="reports-title">📑 지출결의서</h1>
+    <%= link_to new_expenses_report_path, class: "btn-new" do %>
+      ➕ 새 지출결의서
+    <% end %>
+  </div>
+
+  <div class="reports-card">
+    <% if @reports.any? %>
+      <% @reports.each do |report| %>
+        <div class="report-item">
+          <span class="report-icon">📑</span>
+          <div class="report-info">
+            <div class="report-title"><%= report.title %></div>
+            <div class="report-meta">
+              <%= report.created_at.strftime("%Y-%m-%d %H:%M") %>
+              · <%= report.expense_count %>건
+              · <%= number_to_currency(report.total_amount, unit: "", precision: 0, delimiter: ",") %>원
+            </div>
+          </div>
+          <div class="report-actions">
+            <span class="history-badge badge-<%= report.status %>"><%= report.status_i18n %></span>
+            <% if report.completed? && report.output_file.attached? %>
+              <%= link_to download_expenses_report_path(report), class: "btn-download" do %>
+                ⬇️ 다운로드
+              <% end %>
+            <% end %>
+            <%= link_to expenses_report_path(report), class: "btn-view" do %>
+              상세
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div style="text-align: center; padding: 3rem; color: #9ca3af;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+        <div>아직 생성한 지출결의서가 없습니다</div>
+      </div>
+    <% end %>
+  </div>
+</div>

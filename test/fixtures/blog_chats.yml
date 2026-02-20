@@ -1,0 +1,11 @@
+one:
+  blog_post: one
+  user: one
+  role: user
+  content: 더 쉽게 작성해주세요
+
+two:
+  blog_post: one
+  user: one
+  role: assistant
+  content: 네, 좀 더 쉬운 표현으로 수정하겠습니다.

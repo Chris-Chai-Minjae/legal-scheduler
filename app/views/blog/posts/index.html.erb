@@ -1,0 +1,100 @@
+<%# @TASK P2-S1-T1 - 블로그 목록 화면 %>
+<%# @SPEC Phase 2 블로그 AI 목록 화면 %>
+
+<!-- 헤더: 제목 + "새 글 작성" 버튼 -->
+<div class="blog-header">
+  <h1>블로그 AI</h1>
+  <div class="blog-header-actions">
+    <%= link_to blog_write_path, class: "btn btn-primary" do %>
+      ✍️ 새 글 작성
+    <% end %>
+  </div>
+</div>
+
+<!-- 검색바 (Turbo Frame) -->
+<turbo-frame id="blog-search-results">
+  <%= form_with url: blog_posts_path, method: :get, data: { controller: "search", search_target: "form", turbo_frame: "blog-search-results" } do |f| %>
+    <div class="blog-search">
+      <span class="blog-search-icon">🔍</span>
+      <%= text_field_tag :q, params[:q],
+          class: "blog-search-input",
+          placeholder: "글 검색...",
+          data: {
+            search_target: "input",
+            action: "input->search#search"
+          } %>
+    </div>
+  <% end %>
+
+  <!-- 글 목록 또는 빈 상태 -->
+  <% if @posts.any? %>
+    <div class="blog-cards" id="posts">
+      <%= render partial: "blog/posts/post_card", collection: @posts, as: :post %>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <% if @total_pages > 1 %>
+      <nav class="blog-pagination">
+        <!-- 이전 페이지 -->
+        <% if @page > 1 %>
+          <%= link_to "← 이전", blog_posts_path(page: @page - 1, q: params[:q]) %>
+        <% else %>
+          <span class="disabled">← 이전</span>
+        <% end %>
+
+        <!-- 페이지 번호들 -->
+        <% page_range = [[@page - 2, 1].max, [@page + 2, @total_pages].min].max %>
+        <% start_page = [@page - 2, 1].max %>
+        <% end_page = [[@page + 2, @total_pages].min, page_range].min %>
+
+        <% if start_page > 1 %>
+          <%= link_to "1", blog_posts_path(page: 1, q: params[:q]) %>
+          <% if start_page > 2 %>
+            <span class="disabled">...</span>
+          <% end %>
+        <% end %>
+
+        <% (start_page..end_page).each do |page_num| %>
+          <% if page_num == @page %>
+            <span class="current"><%= page_num %></span>
+          <% else %>
+            <%= link_to page_num, blog_posts_path(page: page_num, q: params[:q]) %>
+          <% end %>
+        <% end %>
+
+        <% if end_page < @total_pages %>
+          <% if end_page < @total_pages - 1 %>
+            <span class="disabled">...</span>
+          <% end %>
+          <%= link_to @total_pages, blog_posts_path(page: @total_pages, q: params[:q]) %>
+        <% end %>
+
+        <!-- 다음 페이지 -->
+        <% if @page < @total_pages %>
+          <%= link_to "다음 →", blog_posts_path(page: @page + 1, q: params[:q]) %>
+        <% else %>
+          <span class="disabled">다음 →</span>
+        <% end %>
+      </nav>
+    <% end %>
+  <% else %>
+    <div class="blog-empty-state">
+      <div class="blog-empty-icon">✍️</div>
+      <div class="blog-empty-text">
+        <% if params[:q].present? %>
+          검색 결과가 없습니다
+        <% else %>
+          아직 작성한 글이 없습니다
+        <% end %>
+      </div>
+      <div class="blog-empty-hint">
+        <% if params[:q].present? %>
+          다른 검색어로 시도해보세요
+        <% else %>
+          AI와 함께 첫 블로그 글을 작성해보세요!
+        <% end %>
+      </div>
+      <%= link_to "글 작성 시작", blog_write_path, class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</turbo-frame>

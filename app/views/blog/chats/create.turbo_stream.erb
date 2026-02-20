@@ -1,0 +1,41 @@
+<%# 사용자 메시지 추가 %>
+<turbo-stream action="append" target="chat-messages">
+  <template>
+    <div class="chat-message user-message" data-role="user">
+      <div class="message-content">
+        <%= @chat.content %>
+      </div>
+      <div class="message-timestamp">
+        <%= l(@chat.created_at, format: :short) %>
+      </div>
+    </div>
+  </template>
+</turbo-stream>
+
+<%# AI 응답 추가 %>
+<turbo-stream action="append" target="chat-messages">
+  <template>
+    <div class="chat-message assistant-message" data-role="assistant">
+      <div class="message-content">
+        <%= @assistant_chat.content %>
+      </div>
+      <div class="message-timestamp">
+        <%= l(@assistant_chat.created_at, format: :short) %>
+      </div>
+    </div>
+  </template>
+</turbo-stream>
+
+<%# 입력 폼 초기화 %>
+<turbo-stream action="replace" target="chat-form">
+  <template>
+    <%= form_with model: [@post, BlogChat.new], id: "chat-form", data: { turbo_stream: true } do |f| %>
+      <div class="field">
+        <%= f.text_area :content, placeholder: "메시지를 입력하세요...", rows: 3, required: true %>
+      </div>
+      <div class="actions">
+        <%= f.submit "전송", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </template>
+</turbo-stream>

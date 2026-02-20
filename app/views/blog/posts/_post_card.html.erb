@@ -1,0 +1,18 @@
+<%# @TASK P2-S1-T1 - 블로그 카드 partial %>
+<%# @SPEC Phase 2 블로그 AI 목록 화면 %>
+
+<div class="blog-card" id="post_<%= post.id %>">
+  <%= link_to blog_post_path(post), style: "text-decoration: none; color: inherit;" do %>
+    <div class="blog-card-header">
+      <span class="blog-status-badge <%= post.status %>">
+        <%= post.status_emoji %> <%= post.status_name %>
+      </span>
+    </div>
+    <h3 class="blog-card-title"><%= post.title %></h3>
+    <p class="blog-card-prompt"><%= truncate(post.prompt, length: 100) %></p>
+    <div class="blog-card-meta">
+      <span>생성일: <%= l(post.created_at, format: :short) %></span>
+      <span>톤: <%= post.tone_name %></span>
+    </div>
+  <% end %>
+</div>

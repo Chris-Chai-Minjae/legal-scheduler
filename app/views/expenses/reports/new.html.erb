@@ -1,0 +1,113 @@
+<%= content_for :title, "새 지출결의서" %>
+
+<style>
+  .new-report-container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+  .new-report-title { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1.5rem; }
+  .title-card { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .title-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 1rem; }
+  .title-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+  .title-label { font-size: 0.875rem; font-weight: 500; color: #4b5563; margin-bottom: 0.5rem; display: block; }
+
+  .expenses-card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
+  .expenses-card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
+  .expense-check-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .expense-check-table th { padding: 0.75rem 1rem; font-size: 0.8rem; font-weight: 600; color: #6b7280; text-align: left; border-bottom: 2px solid #e5e7eb; }
+  .expense-check-table td { padding: 0.75rem 1rem; font-size: 0.9rem; border-bottom: 1px solid #f3f4f6; }
+  .expense-check-table tr:hover { background: #f8fafc; }
+  .check-all { cursor: pointer; }
+  .amount-cell { font-weight: 600; text-align: right; }
+
+  .submit-section { display: flex; justify-content: space-between; align-items: center; }
+  .selected-info { font-size: 0.9rem; color: #6b7280; }
+  .selected-count { font-weight: 700; color: #2563eb; }
+  .btn-generate { padding: 0.75rem 2rem; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .btn-generate:hover { background: #1d4ed8; }
+  .btn-generate:disabled { background: #9ca3af; cursor: not-allowed; }
+  .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #3b82f6; text-decoration: none; font-size: 0.9rem; margin-bottom: 1rem; }
+  .back-link:hover { text-decoration: underline; }
+</style>
+
+<div class="new-report-container">
+  <%= link_to expenses_reports_path, class: "back-link" do %>
+    ← 목록으로
+  <% end %>
+
+  <h1 class="new-report-title">📑 새 지출결의서 생성</h1>
+
+  <%= form_with url: expenses_reports_path, method: :post, id: "report-form" do %>
+    <div class="title-card">
+      <label class="title-label">보고서 제목</label>
+      <input type="text" name="title" class="title-input" placeholder="지출결의서 <%= Date.current.strftime('%Y-%m-%d') %>" value="">
+      <% if params[:card_statement_id].present? %>
+        <input type="hidden" name="card_statement_id" value="<%= params[:card_statement_id] %>">
+      <% end %>
+    </div>
+
+    <div class="expenses-card">
+      <h2 class="expenses-card-title">경비 선택</h2>
+      <% if @expenses.any? %>
+        <table class="expense-check-table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="check-all" class="check-all"></th>
+              <th>날짜</th>
+              <th>가맹점</th>
+              <th>카테고리</th>
+              <th>메모</th>
+              <th style="text-align: right">금액</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @expenses.each do |expense| %>
+              <tr>
+                <td><input type="checkbox" name="expense_ids[]" value="<%= expense.id %>" class="expense-check"></td>
+                <td><%= expense.transaction_date.strftime("%Y-%m-%d") %></td>
+                <td><%= expense.merchant %></td>
+                <td><span class="category-badge"><%= expense.category %></span></td>
+                <td><%= expense.memo %></td>
+                <td class="amount-cell"><%= expense.formatted_amount %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <div style="text-align: center; padding: 2rem; color: #9ca3af;">
+          분류가 완료된 경비가 없습니다.
+        </div>
+      <% end %>
+    </div>
+
+    <div class="submit-section">
+      <div class="selected-info">
+        <span class="selected-count" id="selected-count">0</span>건 선택됨
+      </div>
+      <button type="submit" class="btn-generate" id="generate-btn" disabled>
+        📑 지출결의서 생성
+      </button>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  document.addEventListener('turbo:load', function() {
+    const checkAll = document.getElementById('check-all');
+    const checks = document.querySelectorAll('.expense-check');
+    const countEl = document.getElementById('selected-count');
+    const generateBtn = document.getElementById('generate-btn');
+
+    if (!checkAll) return;
+
+    function updateCount() {
+      const checked = document.querySelectorAll('.expense-check:checked').length;
+      countEl.textContent = checked;
+      generateBtn.disabled = checked === 0;
+    }
+
+    checkAll.addEventListener('change', () => {
+      checks.forEach(c => c.checked = checkAll.checked);
+      updateCount();
+    });
+
+    checks.forEach(c => c.addEventListener('change', updateCount));
+  });
+</script>

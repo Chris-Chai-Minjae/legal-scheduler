@@ -1,0 +1,115 @@
+<%= content_for :title, "경비 목록" %>
+
+<style>
+  .items-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+  .items-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+  .items-title { font-size: 1.75rem; font-weight: 700; color: #1a1a2e; }
+  .filter-bar { background: white; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+  .filter-group { display: flex; align-items: center; gap: 0.5rem; }
+  .filter-label { font-size: 0.8rem; font-weight: 500; color: #6b7280; }
+  .filter-input { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.85rem; }
+  .filter-select { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.85rem; background: white; }
+  .filter-btn { padding: 0.5rem 1rem; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 0.85rem; cursor: pointer; }
+  .filter-btn:hover { background: #1d4ed8; }
+
+  .items-table-card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .items-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .items-table th { padding: 0.75rem 1rem; font-size: 0.8rem; font-weight: 600; color: #6b7280; text-align: left; border-bottom: 2px solid #e5e7eb; }
+  .items-table td { padding: 0.75rem 1rem; font-size: 0.9rem; border-bottom: 1px solid #f3f4f6; }
+  .items-table tr:hover { background: #f8fafc; }
+  .amount-cell { font-weight: 600; text-align: right; }
+  .category-badge { padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; background: #eff6ff; color: #1e40af; }
+  .edit-link { color: #3b82f6; text-decoration: none; font-size: 0.85rem; }
+  .edit-link:hover { text-decoration: underline; }
+  .summary-row { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .summary-box { flex: 1; background: white; border-radius: 12px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+  .summary-value { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
+  .summary-label { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+</style>
+
+<div class="items-container">
+  <div class="items-header">
+    <h1 class="items-title">💰 경비 목록</h1>
+  </div>
+
+  <div class="summary-row">
+    <div class="summary-box">
+      <div class="summary-value"><%= @expenses.count %></div>
+      <div class="summary-label">총 건수</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-value"><%= number_to_currency(@expenses.sum(:amount), unit: "", precision: 0, delimiter: ",") %>원</div>
+      <div class="summary-label">총 금액</div>
+    </div>
+    <div class="summary-box">
+      <div class="summary-value"><%= @card_names.size %></div>
+      <div class="summary-label">카드사</div>
+    </div>
+  </div>
+
+  <%= form_with url: expenses_items_path, method: :get, data: { turbo_frame: "_top" } do %>
+    <div class="filter-bar">
+      <div class="filter-group">
+        <span class="filter-label">카드사</span>
+        <select name="card_name" class="filter-select">
+          <option value="">전체</option>
+          <% @card_names.each do |name| %>
+            <option value="<%= name %>" <%= "selected" if params[:card_name] == name %>><%= name %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">카테고리</span>
+        <select name="category" class="filter-select">
+          <option value="">전체</option>
+          <% Expense::CATEGORIES.each do |cat| %>
+            <option value="<%= cat %>" <%= "selected" if params[:category] == cat %>><%= cat %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">기간</span>
+        <input type="date" name="date_from" class="filter-input" value="<%= params[:date_from] %>">
+        <span>~</span>
+        <input type="date" name="date_to" class="filter-input" value="<%= params[:date_to] %>">
+      </div>
+      <button type="submit" class="filter-btn">필터 적용</button>
+    </div>
+  <% end %>
+
+  <div class="items-table-card">
+    <% if @expenses.any? %>
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>날짜</th>
+            <th>가맹점</th>
+            <th>카드사</th>
+            <th>카테고리</th>
+            <th>메모</th>
+            <th style="text-align: right">금액</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @expenses.each do |expense| %>
+            <tr>
+              <td><%= expense.transaction_date.strftime("%Y-%m-%d") %></td>
+              <td><%= expense.merchant %></td>
+              <td><%= expense.card_name %></td>
+              <td><span class="category-badge"><%= expense.category || "미분류" %></span></td>
+              <td><%= expense.memo %></td>
+              <td class="amount-cell"><%= expense.formatted_amount %></td>
+              <td><%= link_to "수정", edit_expenses_item_path(expense), class: "edit-link" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div style="text-align: center; padding: 3rem; color: #9ca3af;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+        <div>경비 내역이 없습니다. 카드 내역을 먼저 업로드해주세요.</div>
+      </div>
+    <% end %>
+  </div>
+</div>

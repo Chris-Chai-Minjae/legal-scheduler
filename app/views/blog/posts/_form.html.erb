@@ -1,0 +1,111 @@
+<%# @TASK P2-S2-T1 - Blog post form partial %>
+<%# @SPEC For error re-rendering with turbo_stream %>
+
+<div id="post_form">
+  <%= form_with model: post, url: post.persisted? ? blog_post_path(post) : blog_posts_path, method: post.persisted? ? :patch : :post, id: "blog_post_form" do |f| %>
+
+    <!-- Error Messages -->
+    <% if post.errors.any? %>
+      <div style="background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+        <h3 style="color: #991B1B; font-size: 16px; font-weight: 600; margin-bottom: 12px;">
+          ⚠️ <%= pluralize(post.errors.count, "개의 오류") %>가 발생했습니다:
+        </h3>
+        <ul style="margin: 0; padding-left: 20px; color: #991B1B;">
+          <% post.errors.full_messages.each do |message| %>
+            <li style="margin-bottom: 4px;"><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <!-- Prompt -->
+    <div class="form-group" style="margin-bottom: 24px;">
+      <label class="label" style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--gray-700);">
+        글 주제 <span style="color: var(--danger);">*</span>
+      </label>
+      <%= f.text_area :prompt,
+          class: "blog-prompt-textarea",
+          placeholder: "어떤 주제로 글을 작성할까요?\n예: 변호사의 AI 활용법에 대해 작성해주세요",
+          rows: 4,
+          required: true,
+          style: "margin-bottom: 8px;" %>
+      <div style="font-size: 12px; color: var(--gray-500);">
+        💡 구체적으로 작성할수록 더 좋은 결과를 얻을 수 있습니다.
+      </div>
+    </div>
+
+    <!-- Tone Selector -->
+    <div class="form-group" style="margin-bottom: 24px;">
+      <label class="label" style="display: block; font-weight: 500; margin-bottom: 12px; color: var(--gray-700);">
+        글 톤
+      </label>
+      <div class="blog-tone-selector">
+        <div class="blog-tone-option">
+          <%= f.radio_button :tone, "professional", checked: post.tone == "professional" || post.tone.nil?, id: "form_tone_professional" %>
+          <%= label_tag "form_tone_professional", "🎯 전문적", class: "blog-tone-label" %>
+        </div>
+        <div class="blog-tone-option">
+          <%= f.radio_button :tone, "easy", checked: post.tone == "easy", id: "form_tone_easy" %>
+          <%= label_tag "form_tone_easy", "😊 쉬운", class: "blog-tone-label" %>
+        </div>
+        <div class="blog-tone-option">
+          <%= f.radio_button :tone, "storytelling", checked: post.tone == "storytelling", id: "form_tone_storytelling" %>
+          <%= label_tag "form_tone_storytelling", "📖 스토리텔링", class: "blog-tone-label" %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Length Selector -->
+    <div class="form-group" style="margin-bottom: 24px;">
+      <label class="label" style="display: block; font-weight: 500; margin-bottom: 12px; color: var(--gray-700);">
+        글 길이
+      </label>
+      <div class="blog-length-selector">
+        <div class="blog-length-option">
+          <%= f.radio_button :length_setting, "short", checked: post.length_setting == "short", id: "form_length_short" %>
+          <%= label_tag "form_length_short", "짧은 (1,000자)", class: "blog-length-label" %>
+        </div>
+        <div class="blog-length-option">
+          <%= f.radio_button :length_setting, "medium", checked: post.length_setting == "medium" || post.length_setting.nil?, id: "form_length_medium" %>
+          <%= label_tag "form_length_medium", "보통 (2,000자)", class: "blog-length-label" %>
+        </div>
+        <div class="blog-length-option">
+          <%= f.radio_button :length_setting, "long", checked: post.length_setting == "long", id: "form_length_long" %>
+          <%= label_tag "form_length_long", "긴 (4,000자)", class: "blog-length-label" %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Title (Optional) -->
+    <div class="form-group" style="margin-bottom: 24px;">
+      <label class="label" style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--gray-700);">
+        제목 (선택사항)
+      </label>
+      <%= f.text_field :title,
+          class: "input",
+          placeholder: "제목을 직접 입력하거나 비워두면 AI가 생성합니다" %>
+      <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">
+        ℹ️ 비워두면 AI가 자동으로 제목을 생성합니다.
+      </div>
+    </div>
+
+    <!-- Content (for edit) -->
+    <% if post.persisted? %>
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label class="label" style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--gray-700);">
+          본문
+        </label>
+        <%= f.text_area :content,
+            class: "blog-prompt-textarea",
+            rows: 12,
+            style: "font-size: 16px; line-height: 1.6;" %>
+      </div>
+    <% end %>
+
+    <!-- Submit Button -->
+    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+      <%= link_to "취소", post.persisted? ? blog_post_path(post) : blog_posts_path, class: "btn btn-secondary" %>
+      <%= f.submit post.persisted? ? "수정하기" : "작성하기", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

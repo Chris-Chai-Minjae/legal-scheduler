@@ -1,0 +1,80 @@
+<%= content_for :title, @report.title %>
+
+<style>
+  .report-detail-container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+  .report-detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+  .report-detail-title { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
+  .report-detail-meta { color: #6b7280; font-size: 0.9rem; margin-top: 0.25rem; }
+  .report-stats { display: flex; gap: 1.5rem; margin-bottom: 2rem; }
+  .report-stat { flex: 1; background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+  .report-stat-value { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
+  .report-stat-label { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+  .report-table-card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .report-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .report-table th { padding: 0.75rem 1rem; font-size: 0.8rem; font-weight: 600; color: #6b7280; text-align: left; border-bottom: 2px solid #e5e7eb; }
+  .report-table td { padding: 0.75rem 1rem; font-size: 0.9rem; border-bottom: 1px solid #f3f4f6; }
+  .amount-cell { font-weight: 600; text-align: right; }
+  .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #3b82f6; text-decoration: none; font-size: 0.9rem; margin-bottom: 1rem; }
+  .back-link:hover { text-decoration: underline; }
+  .btn-download-lg { padding: 0.75rem 1.5rem; background: #059669; color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .btn-download-lg:hover { background: #047857; }
+</style>
+
+<div class="report-detail-container">
+  <%= link_to expenses_reports_path, class: "back-link" do %>
+    ← 목록으로
+  <% end %>
+
+  <div class="report-detail-header">
+    <div>
+      <h1 class="report-detail-title"><%= @report.title %></h1>
+      <div class="report-detail-meta">
+        생성일: <%= @report.created_at.strftime("%Y-%m-%d %H:%M") %>
+        · 상태: <span class="history-badge badge-<%= @report.status %>"><%= @report.status_i18n %></span>
+      </div>
+    </div>
+    <% if @report.completed? && @report.output_file.attached? %>
+      <%= link_to download_expenses_report_path(@report), class: "btn-download-lg" do %>
+        ⬇️ HWPX 다운로드
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="report-stats">
+    <div class="report-stat">
+      <div class="report-stat-value"><%= @report.expense_count %></div>
+      <div class="report-stat-label">경비 건수</div>
+    </div>
+    <div class="report-stat">
+      <div class="report-stat-value"><%= number_to_currency(@report.total_amount, unit: "", precision: 0, delimiter: ",") %>원</div>
+      <div class="report-stat-label">총 금액</div>
+    </div>
+  </div>
+
+  <div class="report-table-card">
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>날짜</th>
+          <th>가맹점</th>
+          <th>카테고리</th>
+          <th>메모</th>
+          <th style="text-align: right">금액</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @expenses.each_with_index do |expense, idx| %>
+          <tr>
+            <td><%= idx + 1 %></td>
+            <td><%= expense.transaction_date.strftime("%Y-%m-%d") %></td>
+            <td><%= expense.merchant %></td>
+            <td><span class="category-badge"><%= expense.category %></span></td>
+            <td><%= expense.memo %></td>
+            <td class="amount-cell"><%= expense.formatted_amount %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,81 @@
+<%# @TASK P2-S0-T1 - AI Chat Sliding Panel %>
+<%# @SPEC Blog AI Dashboard - Real-time AI chat with SSE streaming %>
+
+<div class="ai-chat-panel"
+     data-controller="ai-chat"
+     data-ai-chat-url-value="<%= blog_post_chats_path(@post) %>">
+
+  <%# Header %>
+  <div class="ai-chat-header">
+    <h3 class="ai-chat-title">
+      <span class="ai-icon">🤖</span>
+      AI 어시스턴트
+    </h3>
+    <button type="button"
+            class="ai-chat-close"
+            data-action="click->ai-chat#toggle"
+            aria-label="채팅 닫기">
+      ×
+    </button>
+  </div>
+
+  <%# Messages Area %>
+  <div class="ai-chat-messages" data-ai-chat-target="messages">
+    <% if @post.blog_chats.any? %>
+      <% @post.blog_chats.chronological.each do |chat| %>
+        <div class="ai-chat-message <%= chat.role %>">
+          <div class="message-avatar">
+            <%= chat.role == 'user' ? '👤' : '🤖' %>
+          </div>
+          <div class="message-content">
+            <div class="message-text"><%= simple_format(chat.content) %></div>
+            <div class="message-time">
+              <%= time_ago_in_words(chat.created_at) %> 전
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="ai-chat-empty">
+        <p>AI와 대화를 시작해보세요!</p>
+        <p class="empty-hint">글 작성에 대한 질문이나 수정 요청을 할 수 있습니다.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Input Form %>
+  <div class="ai-chat-input-wrapper">
+    <%= form_with url: blog_post_chats_path(@post),
+                  method: :post,
+                  data: {
+                    ai_chat_target: "form",
+                    action: "submit->ai-chat#send"
+                  },
+                  class: "ai-chat-form" do |f| %>
+
+      <%= f.text_area :content,
+                      rows: 3,
+                      placeholder: "메시지를 입력하세요...",
+                      class: "ai-chat-input",
+                      data: { ai_chat_target: "input" },
+                      required: true %>
+
+      <div class="ai-chat-actions">
+        <button type="submit" class="btn btn-primary">
+          <span>전송</span>
+          <span>→</span>
+        </button>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Status Indicator %>
+  <div class="ai-chat-status" data-ai-chat-target="status" style="display: none;">
+    <div class="typing-indicator">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    AI가 응답하는 중...
+  </div>
+</div>

@@ -1,0 +1,68 @@
+<%= content_for :title, "경비 수정" %>
+
+<style>
+  .edit-container { max-width: 600px; margin: 0 auto; padding: 2rem; }
+  .edit-card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .edit-title { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1.5rem; }
+  .info-row { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6; }
+  .info-label { font-size: 0.9rem; color: #6b7280; }
+  .info-value { font-size: 0.9rem; font-weight: 500; color: #1f2937; }
+  .edit-form { margin-top: 1.5rem; }
+  .form-group { margin-bottom: 1.25rem; }
+  .form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #4b5563; margin-bottom: 0.5rem; }
+  .form-select, .form-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; }
+  .form-select:focus, .form-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+  .form-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+  .btn-save { flex: 1; padding: 0.75rem; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; }
+  .btn-save:hover { background: #1d4ed8; }
+  .btn-cancel { flex: 1; padding: 0.75rem; background: white; color: #6b7280; border: 1px solid #d1d5db; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+  .btn-cancel:hover { background: #f9fafb; }
+  .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #3b82f6; text-decoration: none; font-size: 0.9rem; margin-bottom: 1rem; }
+  .back-link:hover { text-decoration: underline; }
+</style>
+
+<div class="edit-container">
+  <%= link_to expenses_items_path, class: "back-link" do %>
+    ← 목록으로
+  <% end %>
+
+  <div class="edit-card">
+    <h1 class="edit-title">경비 수정</h1>
+
+    <div class="info-row">
+      <span class="info-label">거래일</span>
+      <span class="info-value"><%= @expense.transaction_date.strftime("%Y-%m-%d") %></span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">가맹점</span>
+      <span class="info-value"><%= @expense.merchant %></span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">금액</span>
+      <span class="info-value"><%= @expense.formatted_amount %></span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">카드사</span>
+      <span class="info-value"><%= @expense.card_name %></span>
+    </div>
+
+    <div class="edit-form">
+      <%= form_with model: @expense, url: expenses_item_path(@expense), method: :patch do |f| %>
+        <div class="form-group">
+          <label class="form-label">카테고리</label>
+          <%= f.select :category, Expense::CATEGORIES.map { |c| [c, c] }, { include_blank: "선택해주세요" }, class: "form-select" %>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">메모</label>
+          <%= f.text_field :memo, class: "form-input", placeholder: "메모를 입력하세요" %>
+        </div>
+
+        <div class="form-actions">
+          <%= link_to "취소", expenses_items_path, class: "btn-cancel" %>
+          <%= f.submit "저장", class: "btn-save" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

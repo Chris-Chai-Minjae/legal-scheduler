@@ -1,0 +1,153 @@
+<%= content_for :title, "비용 회계" %>
+
+<style>
+  .expense-container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+  .page-title { font-size: 1.75rem; font-weight: 700; color: #1a1a2e; }
+  .page-subtitle { color: #6b7280; font-size: 0.95rem; margin-top: 0.25rem; }
+  .upload-card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
+  .upload-zone { border: 2px dashed #d1d5db; border-radius: 12px; padding: 3rem 2rem; text-align: center; background: #f9fafb; transition: all 0.3s ease; cursor: pointer; margin-bottom: 1.5rem; }
+  .upload-zone:hover, .upload-zone.dragover { border-color: #3b82f6; background: #eff6ff; }
+  .upload-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .upload-text { font-size: 1.1rem; color: #374151; margin-bottom: 0.5rem; }
+  .upload-hint { font-size: 0.85rem; color: #9ca3af; }
+  .file-input { display: none; }
+  .selected-file { display: none; align-items: center; gap: 1rem; padding: 1rem; background: #f0fdf4; border-radius: 8px; margin-bottom: 1.5rem; }
+  .selected-file.show { display: flex; }
+  .file-icon { font-size: 2rem; }
+  .file-info { flex: 1; }
+  .file-name { font-weight: 600; color: #1f2937; }
+  .file-size { font-size: 0.85rem; color: #6b7280; }
+  .remove-file { background: none; border: none; font-size: 1.5rem; color: #9ca3af; cursor: pointer; }
+  .remove-file:hover { color: #ef4444; }
+  .submit-btn { width: 100%; padding: 1rem 2rem; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+  .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59,130,246,0.3); }
+  .submit-btn:disabled { background: #9ca3af; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .history-section { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .history-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; color: #1a1a2e; }
+  .history-list { display: flex; flex-direction: column; gap: 1rem; }
+  .history-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 12px; text-decoration: none; color: inherit; transition: all 0.2s; }
+  .history-item:hover { border-color: #3b82f6; background: #f8fafc; }
+  .history-icon { font-size: 2rem; }
+  .history-info { flex: 1; }
+  .history-filename { font-weight: 600; color: #1f2937; font-size: 0.95rem; }
+  .history-meta { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+  .history-badge { padding: 4px 12px; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+  .badge-pending { background: #fef3c7; color: #92400e; }
+  .badge-parsing { background: #dbeafe; color: #1e40af; }
+  .badge-classifying { background: #e0e7ff; color: #3730a3; }
+  .badge-completed { background: #d1fae5; color: #065f46; }
+  .badge-failed { background: #fee2e2; color: #991b1b; }
+  .delete-btn { padding: 6px 12px; background: none; border: 1px solid #fca5a5; border-radius: 8px; color: #ef4444; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+  .delete-btn:hover { background: #fef2f2; }
+</style>
+
+<div class="expense-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">💰 비용 회계</h1>
+      <p class="page-subtitle">카드 내역 Excel 파일을 업로드하여 경비를 자동으로 분류합니다</p>
+    </div>
+  </div>
+
+  <%= form_with url: expenses_card_statements_path, method: :post, multipart: true, data: { turbo: false }, id: "upload-form" do |f| %>
+    <div class="upload-card">
+      <div class="upload-zone" id="upload-zone">
+        <div class="upload-icon">📊</div>
+        <div class="upload-text">카드 내역 Excel 파일을 드래그하거나 클릭하여 선택</div>
+        <div class="upload-hint">지원 형식: .xlsx (비씨, 국민, 현대, 신한, 하나카드)</div>
+      </div>
+
+      <input type="file" name="file" id="file-input" class="file-input" accept=".xlsx,.xls">
+
+      <div class="selected-file" id="selected-file">
+        <span class="file-icon">📊</span>
+        <div class="file-info">
+          <div class="file-name" id="file-name">파일명</div>
+          <div class="file-size" id="file-size">0 KB</div>
+        </div>
+        <button type="button" class="remove-file" id="remove-file">×</button>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn" disabled>
+        <span>📤</span>
+        <span>업로드 및 분석 시작</span>
+      </button>
+    </div>
+  <% end %>
+
+  <div class="history-section">
+    <h2 class="history-title">📋 업로드 이력</h2>
+    <% if @card_statements.any? %>
+      <div class="history-list">
+        <% @card_statements.each do |statement| %>
+          <div class="history-item">
+            <span class="history-icon">📊</span>
+            <div class="history-info">
+              <%= link_to expenses_card_statement_path(statement), style: "text-decoration: none; color: inherit;" do %>
+                <div class="history-filename"><%= statement.filename %></div>
+                <div class="history-meta">
+                  <%= statement.created_at.strftime("%Y-%m-%d %H:%M") %> · <%= statement.total_transactions %>건
+                  <% if statement.card_summary.present? %>
+                    · <%= statement.card_summary.map { |k, v| "#{k} #{v}건" }.join(", ") %>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+            <span class="history-badge badge-<%= statement.status %>"><%= statement.status_i18n %></span>
+            <%= button_to expenses_card_statement_path(statement), method: :delete, class: "delete-btn", data: { turbo_confirm: "정말 삭제하시겠습니까?" } do %>
+              🗑️
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div style="text-align: center; padding: 3rem; color: #9ca3af;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+        <div>아직 업로드한 카드 내역이 없습니다</div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('turbo:load', function() {
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('file-input');
+    const selectedFile = document.getElementById('selected-file');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const removeFile = document.getElementById('remove-file');
+    const submitBtn = document.getElementById('submit-btn');
+
+    if (!uploadZone) return;
+
+    uploadZone.addEventListener('click', () => fileInput.click());
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; updateFileInfo(e.dataTransfer.files[0]); }
+    });
+
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length) updateFileInfo(e.target.files[0]); });
+
+    function updateFileInfo(file) {
+      fileName.textContent = file.name;
+      const size = file.size;
+      fileSize.textContent = size < 1024 ? size + ' B' : size < 1048576 ? (size/1024).toFixed(1) + ' KB' : (size/1048576).toFixed(1) + ' MB';
+      selectedFile.classList.add('show');
+      uploadZone.style.display = 'none';
+      submitBtn.disabled = false;
+    }
+
+    removeFile.addEventListener('click', () => {
+      fileInput.value = '';
+      selectedFile.classList.remove('show');
+      uploadZone.style.display = 'block';
+      submitBtn.disabled = true;
+    });
+  });
+</script>
