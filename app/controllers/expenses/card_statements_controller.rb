@@ -34,6 +34,12 @@ module Expenses
         return
       end
 
+      # P2 FIX: 파일 크기 제한 (10MB)
+      if file.size > 10.megabytes
+        redirect_to expenses_card_statements_path, alert: "파일 크기는 10MB 이하만 가능합니다."
+        return
+      end
+
       statement = Current.session.user.card_statements.build(
         filename: file.original_filename,
         status: :pending

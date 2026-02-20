@@ -5,9 +5,6 @@ require "uri"
 require "json"
 
 class ExpenseClassifierService
-  API_URL = ENV.fetch("DEEPSEEK_API_URL", "https://api.deepseek.com/chat/completions")
-  API_KEY = ENV.fetch("DEEPSEEK_API_KEY", "")
-  API_MODEL = ENV.fetch("DEEPSEEK_MODEL", "deepseek-chat")
   MAX_RETRIES = 3
   RETRY_DELAY = 1
   TIMEOUT = 30
@@ -43,7 +40,7 @@ class ExpenseClassifierService
   end
 
   def classify(merchant:, amount:, card_name:)
-    return FALLBACK.dup if API_KEY.blank?
+    return FALLBACK.dup if api_key.blank?
 
     user_payload = {
       merchant: merchant.to_s,
@@ -53,7 +50,7 @@ class ExpenseClassifierService
     }.to_json
 
     request_body = {
-      model: API_MODEL,
+      model: api_model,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: user_payload }
@@ -68,7 +65,7 @@ class ExpenseClassifierService
       begin
         response = make_request(request_body)
         return parse_response(response)
-      rescue Net::HTTPRetriableError, Net::HTTPServerException => e
+      rescue Net::HTTPClientException, Net::HTTPFatalError => e
         if e.respond_to?(:response) && e.response.code.to_i == 429
           sleep(RETRY_DELAY * (attempt + 2))
         elsif e.respond_to?(:response) && e.response.code.to_i == 401
@@ -99,23 +96,36 @@ class ExpenseClassifierService
 
   private
 
+  def api_url
+    ENV.fetch("DEEPSEEK_API_URL", "https://api.deepseek.com/chat/completions")
+  end
+
+  def api_key
+    ENV.fetch("DEEPSEEK_API_KEY", "")
+  end
+
+  def api_model
+    ENV.fetch("DEEPSEEK_MODEL", "deepseek-chat")
+  end
+
   def make_request(body)
-    uri = URI(API_URL)
+    uri = URI(api_url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme == "https"
     http.read_timeout = TIMEOUT
     http.open_timeout = TIMEOUT
 
     request = Net::HTTP::Post.new(uri)
-    request["Authorization"] = "Bearer #{API_KEY}"
+    request["Authorization"] = "Bearer #{api_key}"
     request["Content-Type"] = "application/json"
     request.body = body.to_json
 
     response = http.request(request)
 
     unless response.is_a?(Net::HTTPSuccess)
-      error = Net::HTTPServerException.new("#{response.code} #{response.message}", response)
-      raise error
+      status_code = response.code.to_i
+      error_class = status_code >= 500 ? Net::HTTPFatalError : Net::HTTPClientException
+      raise error_class.new("#{response.code} #{response.message}", response)
     end
 
     response.body

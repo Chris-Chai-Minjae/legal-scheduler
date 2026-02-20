@@ -61,9 +61,9 @@
             <% @expenses.each do |expense| %>
               <tr>
                 <td><input type="checkbox" name="expense_ids[]" value="<%= expense.id %>" class="expense-check"></td>
-                <td><%= expense.transaction_date.strftime("%Y-%m-%d") %></td>
+                <td><%= expense.transaction_date&.strftime("%Y-%m-%d") %></td>
                 <td><%= expense.merchant %></td>
-                <td><span class="category-badge"><%= expense.category %></span></td>
+                <td><span class="category-badge"><%= expense.category || "미분류" %></span></td>
                 <td><%= expense.memo %></td>
                 <td class="amount-cell"><%= expense.formatted_amount %></td>
               </tr>

@@ -16,6 +16,8 @@ class HwpxGeneratorService
     @expenses = expenses
   end
 
+  # NOTE: 호출자(caller)는 사용 완료 후 output_path 파일을 반드시 삭제해야 합니다.
+  # 예: FileUtils.rm_f(result.output_path) if result.success
   def generate
     temp_dir = Dir.mktmpdir("hwpx_work")
     output_file = Tempfile.new(["expense_report", ".hwpx"])
@@ -46,6 +48,11 @@ class HwpxGeneratorService
     Zip::File.open(TEMPLATE_PATH.to_s) do |zip|
       zip.each do |entry|
         dest = File.join(temp_dir, entry.name)
+        # Zip path traversal 방어: 추출 경로가 temp_dir 내부인지 검증
+        dest_real = File.expand_path(dest)
+        unless dest_real.start_with?(File.expand_path(temp_dir))
+          raise SecurityError, "Zip path traversal detected: #{entry.name}"
+        end
         FileUtils.mkdir_p(File.dirname(dest))
         entry.extract(dest)
       end
@@ -60,8 +67,8 @@ class HwpxGeneratorService
 
     return if template_paras.nil? || template_paras.empty?
 
-    # Remove all existing paragraphs
-    all_paras.each(&:remove)
+    # Remove only template paragraphs (preserve header paras before TEMPLATE_PARA_RANGE)
+    template_paras.each(&:remove)
 
     # Generate one page per expense
     @expenses.each_with_index do |expense, idx|

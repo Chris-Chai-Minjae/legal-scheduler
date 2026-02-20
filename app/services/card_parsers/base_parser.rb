@@ -50,13 +50,14 @@ module CardParsers
       when DateTime, Time
         value.to_date
       when Numeric
-        (EXCEL_EPOCH + value.to_i).rescue_nil
+        EXCEL_EPOCH + value.to_i
       when String
         parse_date_string(value)
       else
         nil
       end
-    rescue
+    rescue ArgumentError, RangeError => e
+      Rails.logger.debug("[BaseParser] parse_date 실패 (value=#{value.inspect}): #{e.message}")
       nil
     end
 
@@ -73,7 +74,8 @@ module CardParsers
       if (match = cleaned.match(/^(\d{4})[.\-](\d{2})[.\-](\d{2})/))
         Date.new(match[1].to_i, match[2].to_i, match[3].to_i)
       end
-    rescue
+    rescue ArgumentError, RangeError => e
+      Rails.logger.debug("[BaseParser] parse_date_string 실패 (str=#{str.inspect}): #{e.message}")
       nil
     end
 

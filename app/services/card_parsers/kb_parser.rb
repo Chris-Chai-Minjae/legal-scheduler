@@ -25,7 +25,9 @@ module CardParsers
           currency = "KRW"
         else
           amount = amt_fx
-          currency = "USD"
+          # TODO: Excel 시트에 통화 코드 열이 있으면 해당 값 사용 (현재 USD 하드코딩)
+          currency_col = row[7].to_s.strip if row.length > 7
+          currency = currency_col.present? && currency_col.match?(/\A[A-Z]{3}\z/) ? currency_col : "USD"
         end
 
         next if date.nil? || amount.nil?

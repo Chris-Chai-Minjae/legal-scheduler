@@ -31,16 +31,30 @@ module Expenses
         return
       end
 
+      # P1 FIX: expense_ids 소유권 검증 - 현재 사용자의 경비만 허용
+      verified_expenses = Current.session.user.expenses.where(id: expense_ids)
+      if verified_expenses.count != expense_ids.uniq.size
+        redirect_to new_expenses_report_path, alert: "선택한 경비 중 접근할 수 없는 항목이 포함되어 있습니다."
+        return
+      end
+
+      # P2 FIX: card_statement_id 소유권 검증
+      verified_card_statement_id = nil
+      if params[:card_statement_id].present?
+        card_statement = Current.session.user.card_statements.find_by(id: params[:card_statement_id])
+        verified_card_statement_id = card_statement&.id
+      end
+
       report = Current.session.user.expense_reports.build(
         title: params[:title].presence || "지출결의서 #{Date.current.strftime('%Y-%m-%d')}",
-        card_statement_id: params[:card_statement_id],
+        card_statement_id: verified_card_statement_id,
         status: :pending
       )
 
       if report.save
-        expense_ids.each_with_index do |expense_id, idx|
+        verified_expenses.each_with_index do |expense, idx|
           report.expense_report_items.create!(
-            expense_id: expense_id,
+            expense_id: expense.id,
             position: idx + 1
           )
         end

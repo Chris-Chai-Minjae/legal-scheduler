@@ -79,7 +79,7 @@
 
   <div class="history-section">
     <h2 class="history-title">📋 업로드 이력</h2>
-    <% if @card_statements.any? %>
+    <% if @card_statements&.any? %>
       <div class="history-list">
         <% @card_statements.each do |statement| %>
           <div class="history-item">
@@ -88,9 +88,9 @@
               <%= link_to expenses_card_statement_path(statement), style: "text-decoration: none; color: inherit;" do %>
                 <div class="history-filename"><%= statement.filename %></div>
                 <div class="history-meta">
-                  <%= statement.created_at.strftime("%Y-%m-%d %H:%M") %> · <%= statement.total_transactions %>건
+                  <%= statement.created_at&.strftime("%Y-%m-%d %H:%M") %> · <%= statement.total_transactions || 0 %>건
                   <% if statement.card_summary.present? %>
-                    · <%= statement.card_summary.map { |k, v| "#{k} #{v}건" }.join(", ") %>
+                    · <%= statement.card_summary.map { |k, v| "#{h(k)} #{v}건" }.join(", ") %>
                   <% end %>
                 </div>
               <% end %>

@@ -37,11 +37,12 @@ module Expenses
     def update
       @expense = Current.session.user.expenses.find(params[:id])
 
-      if @expense.update(expense_params.merge(classification_status: :manual))
-        description = ExpenseClassifierService.format_description(
-          @expense.memo, @expense.merchant, @expense.card_name
+      if @expense.update(expense_params.merge(
+        classification_status: :manual,
+        description: ExpenseClassifierService.format_description(
+          expense_params[:memo] || @expense.memo, @expense.merchant, @expense.card_name
         )
-        @expense.update_column(:description, description)
+      ))
 
         redirect_to expenses_items_path, notice: "경비가 수정되었습니다."
       else

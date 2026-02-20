@@ -18,6 +18,12 @@
   .back-link:hover { text-decoration: underline; }
   .btn-download-lg { padding: 0.75rem 1.5rem; background: #059669; color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
   .btn-download-lg:hover { background: #047857; }
+  .history-badge { padding: 4px 12px; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+  .badge-pending { background: #fef3c7; color: #92400e; }
+  .badge-generating { background: #dbeafe; color: #1e40af; }
+  .badge-completed { background: #d1fae5; color: #065f46; }
+  .badge-failed { background: #fee2e2; color: #991b1b; }
+  .category-badge { padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; background: #eff6ff; color: #1e40af; }
 </style>
 
 <div class="report-detail-container">
@@ -42,11 +48,11 @@
 
   <div class="report-stats">
     <div class="report-stat">
-      <div class="report-stat-value"><%= @report.expense_count %></div>
+      <div class="report-stat-value"><%= @report.expense_count || 0 %></div>
       <div class="report-stat-label">경비 건수</div>
     </div>
     <div class="report-stat">
-      <div class="report-stat-value"><%= number_to_currency(@report.total_amount, unit: "", precision: 0, delimiter: ",") %>원</div>
+      <div class="report-stat-value"><%= number_to_currency(@report.total_amount || 0, unit: "", precision: 0, delimiter: ",") %>원</div>
       <div class="report-stat-label">총 금액</div>
     </div>
   </div>
@@ -67,9 +73,9 @@
         <% @expenses.each_with_index do |expense, idx| %>
           <tr>
             <td><%= idx + 1 %></td>
-            <td><%= expense.transaction_date.strftime("%Y-%m-%d") %></td>
+            <td><%= expense.transaction_date&.strftime("%Y-%m-%d") %></td>
             <td><%= expense.merchant %></td>
-            <td><span class="category-badge"><%= expense.category %></span></td>
+            <td><span class="category-badge"><%= expense.category || "미분류" %></span></td>
             <td><%= expense.memo %></td>
             <td class="amount-cell"><%= expense.formatted_amount %></td>
           </tr>

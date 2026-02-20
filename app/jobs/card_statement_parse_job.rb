@@ -3,7 +3,17 @@ class CardStatementParseJob < ApplicationJob
 
   def perform(card_statement_id)
     statement = CardStatement.find(card_statement_id)
+
+    # Guard: 이미 처리중이거나 완료된 statement는 재실행 방지 (idempotency)
+    return if statement.parsing? || statement.completed?
+
     statement.update!(status: :parsing)
+
+    # Guard: 파일 첨부 여부 확인
+    unless statement.file.attached?
+      statement.update!(status: :failed, error_message: "첨부된 파일이 없습니다")
+      return
+    end
 
     # Download attached file to temp location
     temp_file = Tempfile.new(["card_statement", ".xlsx"])
@@ -14,16 +24,18 @@ class CardStatementParseJob < ApplicationJob
     # Parse Excel
     result = CardParserService.new(temp_file.path).parse
 
-    # Bulk insert expenses
+    # Build and validate expense records before insert
     if result.transactions.any?
-      expense_records = result.transactions.map do |t|
+      expense_records = result.transactions.filter_map do |t|
+        next if t[:amount].blank? || t[:transaction_date].blank? || t[:card_name].blank?
+
         {
           card_statement_id: statement.id,
           user_id: statement.user_id,
           transaction_date: t[:transaction_date],
           merchant: t[:merchant],
           amount: t[:amount],
-          currency: t[:currency],
+          currency: t[:currency] || "KRW",
           card_name: t[:card_name],
           cancelled: t[:cancelled] || false,
           classification_status: 0,
@@ -32,7 +44,7 @@ class CardStatementParseJob < ApplicationJob
         }
       end
 
-      Expense.insert_all(expense_records)
+      Expense.insert_all(expense_records) if expense_records.any?
     end
 
     statement.update!(
@@ -42,8 +54,10 @@ class CardStatementParseJob < ApplicationJob
 
     # Trigger classification job
     ExpenseClassifyJob.perform_later(statement.id)
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.error("[CardStatementParseJob] Statement #{card_statement_id} not found: #{e.message}")
   rescue => e
-    statement&.update(status: :failed, error_message: e.message)
+    statement&.update(status: :failed, error_message: e.message&.truncate(500))
     Rails.logger.error("[CardStatementParseJob] 실패: #{e.message}")
     raise
   ensure

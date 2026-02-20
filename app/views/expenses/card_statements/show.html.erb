@@ -28,6 +28,12 @@
   .back-link:hover { text-decoration: underline; }
   .btn-report { padding: 0.6rem 1.2rem; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
   .btn-report:hover { background: #1d4ed8; }
+  .history-badge { padding: 4px 12px; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+  .badge-pending { background: #fef3c7; color: #92400e; }
+  .badge-parsing { background: #dbeafe; color: #1e40af; }
+  .badge-classifying { background: #e0e7ff; color: #3730a3; }
+  .badge-completed { background: #d1fae5; color: #065f46; }
+  .badge-failed { background: #fee2e2; color: #991b1b; }
 </style>
 
 <div class="detail-container">
@@ -52,18 +58,18 @@
 
   <div class="status-card">
     <div class="stat-box">
-      <div class="stat-value"><%= @card_statement.total_transactions %></div>
+      <div class="stat-value"><%= @card_statement.total_transactions || 0 %></div>
       <div class="stat-label">총 거래</div>
     </div>
     <div class="stat-box">
-      <div class="stat-value"><%= @card_statement.classified_transactions %></div>
+      <div class="stat-value"><%= @card_statement.classified_transactions || 0 %></div>
       <div class="stat-label">분류 완료</div>
       <div class="progress-bar">
         <div class="progress-fill" style="width: <%= @card_statement.progress_percentage %>%"></div>
       </div>
     </div>
     <div class="stat-box">
-      <div class="stat-value"><%= @card_statement.card_summary.keys.size %></div>
+      <div class="stat-value"><%= @card_statement.card_summary&.keys&.size || 0 %></div>
       <div class="stat-label">카드사</div>
     </div>
   </div>
@@ -75,7 +81,7 @@
         <%= form_with url: expenses_card_statement_path(@card_statement), method: :get, data: { turbo_frame: "_top" } do %>
           <select name="card_name" class="filter-select" onchange="this.form.submit()">
             <option value="">전체 카드사</option>
-            <% @card_statement.card_summary.keys.each do |card| %>
+            <% (@card_statement.card_summary || {}).keys.each do |card| %>
               <option value="<%= card %>" <%= "selected" if params[:card_name] == card %>><%= card %></option>
             <% end %>
           </select>
@@ -104,7 +110,7 @@
         <tbody>
           <% @expenses.each do |expense| %>
             <tr>
-              <td><%= expense.transaction_date.strftime("%Y-%m-%d") %></td>
+              <td><%= expense.transaction_date&.strftime("%Y-%m-%d") %></td>
               <td><%= expense.merchant %></td>
               <td><%= expense.card_name %></td>
               <td><span class="category-badge"><%= expense.category || "미분류" %></span></td>

@@ -38,7 +38,7 @@ class CardParserService
       end
     end
 
-    all_transactions.sort_by! { |t| t[:transaction_date] }
+    all_transactions.sort_by! { |t| t[:transaction_date] || Date.new(1970, 1, 1) }
 
     Result.new(
       transactions: all_transactions,

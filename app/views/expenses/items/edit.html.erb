@@ -31,7 +31,7 @@
 
     <div class="info-row">
       <span class="info-label">거래일</span>
-      <span class="info-value"><%= @expense.transaction_date.strftime("%Y-%m-%d") %></span>
+      <span class="info-value"><%= @expense.transaction_date&.strftime("%Y-%m-%d") %></span>
     </div>
     <div class="info-row">
       <span class="info-label">가맹점</span>
