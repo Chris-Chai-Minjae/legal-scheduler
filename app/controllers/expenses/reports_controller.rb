@@ -131,9 +131,7 @@ module Expenses
       # 임시 CardStatement를 생성하여 임포트된 경비를 연결
       statement = user.card_statements.create!(
         filename: "Excel 재업로드: #{file.original_filename}",
-        status: :completed,
-        total_transactions: result.expenses.size,
-        classified_transactions: result.expenses.size
+        status: :completed
       )
 
       saved_expenses = []
@@ -149,6 +147,12 @@ module Expenses
         redirect_to new_expenses_report_path, alert: "경비 저장에 실패했습니다."
         return
       end
+
+      # 실제 저장 성공 건수로 카운터 업데이트
+      statement.update!(
+        total_transactions: saved_expenses.size,
+        classified_transactions: saved_expenses.size
+      )
 
       redirect_to new_expenses_report_path(card_statement_id: statement.id),
         notice: "#{saved_expenses.size}건의 경비가 임포트되었습니다. 항목을 선택하여 지출결의서를 생성하세요."

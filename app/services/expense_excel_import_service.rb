@@ -124,8 +124,8 @@ class ExpenseExcelImportService
 
     if attrs[:amount].blank?
       errors << "#{line_num}행: 금액이 비어있습니다."
-    elsif parse_amount(attrs[:amount]).to_i <= 0
-      errors << "#{line_num}행: 금액은 0보다 커야 합니다 (#{attrs[:amount]})."
+    elsif parse_amount(attrs[:amount]).to_i == 0
+      errors << "#{line_num}행: 금액은 0이 아니어야 합니다 (#{attrs[:amount]})."
     end
 
     errors
@@ -152,9 +152,9 @@ class ExpenseExcelImportService
   def parse_amount(value)
     return 0 if value.blank?
 
-    # 쉼표, 원, 공백, 통화기호 제거
+    # 쉼표, 원, 공백, 통화기호 제거 (부호는 보존)
     cleaned = value.to_s.gsub(/[,\s원₩\\]/, "")
-    cleaned.to_i.abs
+    cleaned.to_i
   end
 
   def normalize_category(value)
