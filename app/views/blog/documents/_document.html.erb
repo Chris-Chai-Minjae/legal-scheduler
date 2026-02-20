@@ -1,0 +1,65 @@
+<div id="document_<%= document.id %>" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div style="flex: 1; min-width: 0;">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <span style="font-size: 20px;">
+          <% case document.file_type %>
+          <% when 'pdf' %>
+            📕
+          <% when 'docx' %>
+            📘
+          <% when 'hwp' %>
+            📗
+          <% else %>
+            📄
+          <% end %>
+        </span>
+        <span style="font-size: 15px; font-weight: 600; color: var(--gray-900); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          <%= document.filename %>
+        </span>
+      </div>
+
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <% if document.tag.present? %>
+          <span style="padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; background: #eff6ff; color: #1e40af;">
+            <%= document.tag %>
+          </span>
+        <% end %>
+
+        <span style="padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500;
+          <% case document.status %>
+          <% when 'pending' %>
+            background: #fef3c7; color: #92400e;">대기중
+          <% when 'processing' %>
+            background: #dbeafe; color: #1e40af;">처리중
+          <% when 'ready' %>
+            background: #d1fae5; color: #065f46;">준비완료
+          <% when 'failed' %>
+            background: #fee2e2; color: #991b1b;">실패
+          <% end %>
+        </span>
+
+        <span style="font-size: 12px; color: var(--gray-500);">
+          <%= document.file_size.present? ? number_to_human_size(document.file_size) : "-" %>
+        </span>
+      </div>
+
+      <div style="font-size: 12px; color: var(--gray-500); margin-top: 8px;">
+        <%= document.created_at.strftime("%Y-%m-%d %H:%M") %> 업로드
+        <% if document.chunk_count.to_i > 0 %>
+          · <%= document.chunk_count %>개 청크
+        <% end %>
+      </div>
+    </div>
+
+    <div style="margin-left: 12px;">
+      <%= button_to blog_document_path(document),
+          method: :delete,
+          class: "btn btn-danger",
+          style: "padding: 4px 12px; font-size: 13px;",
+          data: { turbo_confirm: "정말 삭제하시겠습니까?" } do %>
+        삭제
+      <% end %>
+    </div>
+  </div>
+</div>

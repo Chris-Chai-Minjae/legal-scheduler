@@ -1,3 +1,5 @@
+require "csv"
+
 module Expenses
   class CardStatementsController < ApplicationController
     before_action :require_authentication
@@ -54,10 +56,50 @@ module Expenses
       end
     end
 
+    def download_excel
+      statement = Current.session.user.card_statements.find(params[:id])
+
+      unless statement.completed?
+        redirect_to expenses_card_statement_path(statement), alert: "분류가 완료된 후 다운로드할 수 있습니다."
+        return
+      end
+
+      expenses = statement.expenses.classified.by_date
+
+      csv_data = generate_csv(expenses)
+      filename = "경비분류결과_#{Date.current.strftime('%Y-%m-%d')}.csv"
+
+      send_data csv_data, filename: filename, type: "text/csv; charset=utf-8", disposition: "attachment"
+    end
+
     def destroy
       statement = Current.session.user.card_statements.find(params[:id])
       statement.destroy
       redirect_to expenses_card_statements_path, notice: "카드 내역이 삭제되었습니다."
+    end
+
+    private
+
+    def generate_csv(expenses)
+      bom = "\xEF\xBB\xBF".force_encoding("UTF-8")
+      headers = %w[거래일 가맹점 금액 카드사 카테고리 메모 적요]
+
+      csv_string = CSV.generate do |csv|
+        csv << headers
+        expenses.each do |expense|
+          csv << [
+            expense.transaction_date&.strftime("%Y-%m-%d"),
+            expense.merchant,
+            expense.amount,
+            expense.card_name,
+            expense.category,
+            expense.memo,
+            expense.description
+          ]
+        end
+      end
+
+      bom + csv_string
     end
   end
 end

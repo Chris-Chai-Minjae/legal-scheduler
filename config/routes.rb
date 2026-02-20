@@ -84,7 +84,11 @@ Rails.application.routes.draw do
 
   # Expense Management (비용 회계 + 지출결의서)
   namespace :expenses do
-    resources :card_statements, only: [:index, :show, :create, :destroy]
+    resources :card_statements, only: [:index, :show, :create, :destroy] do
+      member do
+        get :download_excel
+      end
+    end
     resources :items, only: [:index, :show, :edit, :update]
     resources :reports, only: [:index, :show, :new, :create] do
       member do

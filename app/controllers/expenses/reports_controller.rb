@@ -24,6 +24,12 @@ module Expenses
     end
 
     def create
+      # Excel 업로드가 있는 경우: 파일에서 경비를 임포트
+      if params[:excel_file].present?
+        handle_excel_upload
+        return
+      end
+
       expense_ids = params[:expense_ids] || []
 
       if expense_ids.empty?
@@ -91,6 +97,61 @@ module Expenses
       Rails.logger.warn("[ReportsController] Stream interrupted: #{e.message}")
     ensure
       response.stream.close rescue nil
+    end
+
+    private
+
+    def handle_excel_upload
+      file = params[:excel_file]
+      ext = File.extname(file.original_filename).downcase
+
+      unless %w[.csv .xlsx .xls].include?(ext)
+        redirect_to new_expenses_report_path, alert: "CSV 또는 Excel 파일(.csv, .xlsx)만 업로드 가능합니다."
+        return
+      end
+
+      if file.size > 10.megabytes
+        redirect_to new_expenses_report_path, alert: "파일 크기는 10MB 이하만 가능합니다."
+        return
+      end
+
+      user = Current.session.user
+      result = ExpenseExcelImportService.new(file, user: user).call
+
+      if result.errors.any?
+        redirect_to new_expenses_report_path, alert: "Excel 처리 오류: #{result.errors.first(3).join(', ')}"
+        return
+      end
+
+      if result.expenses.empty?
+        redirect_to new_expenses_report_path, alert: "파일에 유효한 경비 데이터가 없습니다."
+        return
+      end
+
+      # 임시 CardStatement를 생성하여 임포트된 경비를 연결
+      statement = user.card_statements.create!(
+        filename: "Excel 재업로드: #{file.original_filename}",
+        status: :completed,
+        total_transactions: result.expenses.size,
+        classified_transactions: result.expenses.size
+      )
+
+      saved_expenses = []
+      result.expenses.each do |expense|
+        expense.card_statement = statement
+        if expense.save
+          saved_expenses << expense
+        end
+      end
+
+      if saved_expenses.empty?
+        statement.destroy
+        redirect_to new_expenses_report_path, alert: "경비 저장에 실패했습니다."
+        return
+      end
+
+      redirect_to new_expenses_report_path(card_statement_id: statement.id),
+        notice: "#{saved_expenses.size}건의 경비가 임포트되었습니다. 항목을 선택하여 지출결의서를 생성하세요."
     end
   end
 end

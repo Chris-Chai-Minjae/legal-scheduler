@@ -34,6 +34,22 @@
 
   <h1 class="new-report-title">📑 새 지출결의서 생성</h1>
 
+  <!-- Excel 재업로드 영역 -->
+  <div class="expenses-card" style="margin-bottom: 1.5rem; border: 2px dashed #d1d5db;">
+    <h2 class="expenses-card-title">수정 Excel 업로드</h2>
+    <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 1rem;">
+      비용 회계에서 다운로드한 Excel을 수정 후 업로드하세요. CSV(.csv) 및 Excel(.xlsx) 파일을 지원합니다.
+    </p>
+    <%= form_with url: expenses_reports_path, method: :post, multipart: true, id: "excel-upload-form" do %>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <input type="file" name="excel_file" accept=".csv,.xlsx,.xls" style="flex: 1; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.85rem;">
+        <button type="submit" class="btn-generate" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;">
+          Excel로 경비 입력
+        </button>
+      </div>
+    <% end %>
+  </div>
+
   <%= form_with url: expenses_reports_path, method: :post, id: "report-form" do %>
     <div class="title-card">
       <label class="title-label">보고서 제목</label>

@@ -1,4 +1,6 @@
 class Blog::DocumentsController < ApplicationController
+  layout "dashboard"
+
   def index
     @documents = Current.user.blog_documents
                           .by_tag(params[:tag])

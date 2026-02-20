@@ -1,0 +1,64 @@
+<%= content_for :title, "참고 문서 - Blog AI" %>
+
+<div class="blog-header">
+  <h1>📄 참고 문서</h1>
+  <div class="blog-header-actions">
+    <%= link_to blog_write_path, class: "btn btn-secondary" do %>
+      ✍️ 글 작성
+    <% end %>
+  </div>
+</div>
+
+<!-- 태그 필터 -->
+<div style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
+  <%= link_to "전체", blog_documents_path, class: "btn #{params[:tag].blank? ? 'btn-primary' : 'btn-secondary'}", style: "padding: 6px 16px; font-size: 14px;" %>
+  <% %w[판례 법령 논문 기타].each do |tag| %>
+    <%= link_to tag, blog_documents_path(tag: tag), class: "btn #{params[:tag] == tag ? 'btn-primary' : 'btn-secondary'}", style: "padding: 6px 16px; font-size: 14px;" %>
+  <% end %>
+</div>
+
+<!-- 문서 업로드 -->
+<div class="section" style="margin-bottom: 24px;">
+  <div style="background: white; border: 2px dashed #d1d5db; border-radius: 12px; padding: 24px;">
+    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--gray-900);">새 문서 업로드</h3>
+    <%= form_with url: blog_documents_path, method: :post, scope: :blog_document, multipart: true, data: { turbo: false } do |f| %>
+      <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+          <label style="display: block; font-size: 13px; font-weight: 500; color: var(--gray-600); margin-bottom: 6px;">파일 선택</label>
+          <%= f.file_field :file, accept: ".pdf,.docx,.hwp", style: "width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" %>
+        </div>
+        <div style="min-width: 120px;">
+          <label style="display: block; font-size: 13px; font-weight: 500; color: var(--gray-600); margin-bottom: 6px;">태그</label>
+          <%= f.select :tag, options_for_select([["태그 없음", ""], ["판례", "판례"], ["법령", "법령"], ["논문", "논문"], ["기타", "기타"]]), {}, style: "width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;" %>
+        </div>
+        <div>
+          <button type="submit" class="btn btn-primary" style="padding: 8px 20px;">업로드</button>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: var(--gray-500); margin-top: 8px;">PDF, DOCX, HWP (최대 50MB)</p>
+    <% end %>
+  </div>
+</div>
+
+<!-- 문서 목록 -->
+<div id="documents-list">
+  <% if @documents.any? %>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+      <%= render partial: "blog/documents/document", collection: @documents, as: :document %>
+    </div>
+  <% else %>
+    <div class="blog-empty-state">
+      <div class="blog-empty-icon">📄</div>
+      <div class="blog-empty-text">
+        <% if params[:tag].present? %>
+          "<%= params[:tag] %>" 태그의 문서가 없습니다
+        <% else %>
+          아직 업로드한 문서가 없습니다
+        <% end %>
+      </div>
+      <div class="blog-empty-hint">
+        PDF, DOCX, HWP 문서를 업로드하면 AI가 참고하여 글을 작성합니다.
+      </div>
+    </div>
+  <% end %>
+</div>

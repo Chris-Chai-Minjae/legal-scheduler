@@ -1,5 +1,6 @@
 class Blog::PostsController < ApplicationController
   include ActionController::Live # SSE 프록시를 위한 모듈
+  layout "dashboard"
   before_action :set_post, only: [:show, :edit, :update, :destroy, :regenerate]
 
   # 페이지당 항목 수
@@ -20,7 +21,7 @@ class Blog::PostsController < ApplicationController
 
     @page = (params[:page] || 1).to_i
     @page = 1 if @page < 1
-    @page = @total_pages if @page > @total_pages  # Clamp to max valid page
+    @page = @total_pages if @total_pages > 0 && @page > @total_pages
 
     @posts = query.offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
   end
@@ -54,7 +55,7 @@ class Blog::PostsController < ApplicationController
           }, status: :created
         }
         format.turbo_stream do
-          render turbo_stream: turbo_stream.prepend("posts", partial: "blog/posts/post", locals: { post: @post })
+          render turbo_stream: turbo_stream.prepend("posts", partial: "blog/posts/post_card", locals: { post: @post })
         end
         format.html { redirect_to blog_post_path(@post), notice: "블로그 글이 생성되었습니다." }
       else
@@ -80,7 +81,7 @@ class Blog::PostsController < ApplicationController
     respond_to do |format|
       if @post.update(post_params)
         format.turbo_stream do
-          render turbo_stream: turbo_stream.replace("post_#{@post.id}", partial: "blog/posts/post", locals: { post: @post })
+          render turbo_stream: turbo_stream.replace("post_#{@post.id}", partial: "blog/posts/post_card", locals: { post: @post })
         end
         format.json { render json: { success: true, post: @post }, status: :ok }
         format.html { redirect_to blog_post_path(@post), notice: "블로그 글이 수정되었습니다." }

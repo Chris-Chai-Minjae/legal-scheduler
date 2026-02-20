@@ -47,6 +47,7 @@
   <div class="ai-chat-input-wrapper">
     <%= form_with url: blog_post_chats_path(@post),
                   method: :post,
+                  scope: :blog_chat,
                   data: {
                     ai_chat_target: "form",
                     action: "submit->ai-chat#send"

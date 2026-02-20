@@ -50,9 +50,14 @@
       </div>
     </div>
     <% if @card_statement.completed? %>
-      <%= link_to new_expenses_report_path(card_statement_id: @card_statement.id), class: "btn-report" do %>
-        📑 지출결의서 생성
-      <% end %>
+      <div style="display: flex; gap: 0.75rem;">
+        <%= link_to download_excel_expenses_card_statement_path(@card_statement), class: "btn-report", style: "background: #059669;" do %>
+          분류결과 Excel 다운로드
+        <% end %>
+        <%= link_to new_expenses_report_path(card_statement_id: @card_statement.id), class: "btn-report" do %>
+          지출결의서 생성
+        <% end %>
+      </div>
     <% end %>
   </div>
 
