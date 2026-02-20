@@ -40,7 +40,7 @@
         <span>✍️</span>
         <span>글 작성</span>
       <% end %>
-      <%= link_to blog_posts_path, class: "nav-item #{controller_name == 'posts' && controller_path == 'blog/posts' ? 'active' : ''}" do %>
+      <%= link_to blog_posts_path, class: "nav-item #{controller_path == 'blog/posts' && action_name != 'new' ? 'active' : ''}" do %>
         <span>📝</span>
         <span>블로그 글</span>
       <% end %>
