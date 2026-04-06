@@ -2,13 +2,13 @@
 
 require "zip"
 require "nokogiri"
-require "tempfile"
 require "fileutils"
 
 class HwpxGeneratorService
   TEMPLATE_PATH = Rails.root.join("app", "assets", "templates", "cost.hwpx")
-  NS_PARA = "http://www.hancom.co.kr/hwpml/2011/paragraph"
-  TEMPLATE_PARA_RANGE = (2..31) # 30 template paragraphs
+
+  # 누름틀(CLICK_HERE) 필드 이름
+  FIELD_NAMES = %w[date date2 amount merchant category memo].freeze
 
   Result = Data.define(:success, :output_path, :error)
 
@@ -17,24 +17,20 @@ class HwpxGeneratorService
   end
 
   # NOTE: 호출자(caller)는 사용 완료 후 output_path 파일을 반드시 삭제해야 합니다.
-  # 예: FileUtils.rm_f(result.output_path) if result.success
   def generate
     temp_dir = Dir.mktmpdir("hwpx_work")
     output_path = File.join(Dir.tmpdir, "expense_report_#{SecureRandom.hex(8)}.hwpx")
 
-    # 1. Extract HWPX template
     extract_template(temp_dir)
 
-    # 2. Parse and modify XML
     xml_path = File.join(temp_dir, "Contents", "section0.xml")
-    modify_xml(xml_path)
+    modify_xml_with_fields(xml_path)
 
-    # 3. Repackage as HWPX
     repackage(temp_dir, output_path)
 
     Result.new(success: true, output_path: output_path, error: nil)
   rescue => e
-    Rails.logger.error("[HwpxGeneratorService] 생성 실패: #{e.message}")
+    Rails.logger.error("[HwpxGeneratorService] 생성 실패: #{e.class}: #{e.message}")
     Result.new(success: false, output_path: nil, error: e.message)
   ensure
     FileUtils.rm_rf(temp_dir) if temp_dir && Dir.exist?(temp_dir)
@@ -46,7 +42,6 @@ class HwpxGeneratorService
     Zip::File.open(TEMPLATE_PATH.to_s) do |zip|
       zip.each do |entry|
         dest = File.join(temp_dir, entry.name)
-        # Zip path traversal 방어: 추출 경로가 temp_dir 내부인지 검증
         dest_real = File.expand_path(dest)
         unless dest_real.start_with?(File.expand_path(temp_dir))
           raise SecurityError, "Zip path traversal detected: #{entry.name}"
@@ -57,87 +52,132 @@ class HwpxGeneratorService
     end
   end
 
-  def modify_xml(xml_path)
-    doc = Nokogiri::XML(File.read(xml_path))
+  def modify_xml_with_fields(xml_path)
+    xml_content = File.read(xml_path)
+    doc = Nokogiri::XML(xml_content)
 
-    all_paras = doc.xpath("//para:p", "para" => NS_PARA)
-    template_paras = all_paras[TEMPLATE_PARA_RANGE]
+    # 템플릿의 body(root) 내 모든 자식 노드 = 1페이지 분량
+    body = doc.root
+    template_children = body.children.to_a.dup
 
-    return if template_paras.nil? || template_paras.empty?
-
-    # Remove template paragraphs AND any trailing paragraphs after template range
-    # (stale sample rows in the original template)
-    all_paras.each_with_index do |para, i|
-      para.remove if i >= TEMPLATE_PARA_RANGE.begin
+    # 첫 번째 경비: 템플릿 자체의 누름틀 값 교체
+    if @expenses.any?
+      fill_fields(doc, build_field_values(@expenses.first))
     end
 
-    # Generate one page per expense
-    @expenses.each_with_index do |expense, idx|
-      replacements = build_replacements(expense)
+    # 2번째 경비부터: 템플릿 페이지를 복제하고 필드 값 교체
+    @expenses.drop(1).each do |expense|
+      values = build_field_values(expense)
 
-      template_paras.each_with_index do |para, para_idx|
-        new_para = para.dup
+      # 페이지 구분을 위해 첫 번째 paragraph에 pageBreak 설정
+      page_nodes = template_children.map(&:dup)
 
-        # Page break for 2nd+ documents
-        if idx > 0 && para_idx == 0
-          new_para["pageBreak"] = "1"
-        end
+      first_para = page_nodes.find { |n| n.name == "p" }
+      first_para["pageBreak"] = "1" if first_para
 
-        replace_in_paragraph(new_para, replacements)
-        doc.root.add_child(new_para)
+      # 누름틀 값 교체
+      page_nodes.each do |node|
+        fill_fields_in_node(node, values)
       end
+
+      # body에 추가
+      page_nodes.each { |node| body.add_child(node) }
     end
 
     File.write(xml_path, doc.to_xml)
   end
 
-  def build_replacements(expense)
+  def build_field_values(expense)
     date = expense.transaction_date
-    memo = expense.memo || "기타지출"
-    merchant = expense.merchant || "(미상)"
+    date_str = "#{date.year}. #{date.month}. #{date.day}."
 
-    # Parse description field for memo_desc
+    # 비고(description)에서 적요 추출: "직원 식대(빅빅버거,비씨카드)" → "직원 식대"
     memo_desc = if expense.description.present?
       match = expense.description.match(/^(.*?)\(/)
-      match ? match[1].strip : memo
+      match ? match[1].strip : (expense.memo || "기타지출")
     else
-      memo
+      expense.memo || "기타지출"
     end
 
     {
-      date: "#{date.year}. #{date.month}. #{date.day}.",
-      amount: expense.formatted_amount,
-      merchant: merchant,
-      category: expense.category || "잡비",
-      memo_desc: memo_desc
+      "date" => date_str,
+      "date2" => date_str,
+      "amount" => expense.formatted_amount,
+      "merchant" => expense.merchant || "(미상)",
+      "category" => expense.category || "잡비",
+      "memo" => memo_desc
     }
   end
 
-  def replace_in_paragraph(para, replacements)
-    para.xpath(".//para:t", "para" => NS_PARA).each do |t_elem|
-      text = t_elem.text
-      next if text.blank?
+  # XML 전체에서 누름틀 필드 값 교체
+  def fill_fields(doc, values)
+    fill_fields_in_node(doc.root, values)
+  end
 
-      if text.include?("지출일자") && text.include?(":")
-        t_elem.content = "지출일자 :  #{replacements[:date]}"
-      elsif text.strip.start_with?("금")
-        parts = text.split(":", 2)
-        if parts.length == 2
-          new_suffix = parts[1].gsub(/\d{1,3}(?:,\d{3})*원/, replacements[:amount])
-          t_elem.content = "#{parts[0]}:#{new_suffix}"
+  # 특정 노드 내에서 누름틀 필드 값 교체
+  def fill_fields_in_node(node, values)
+    # hp:fieldBegin ... </hp:fieldBegin> [텍스트] <hp:fieldEnd/> 패턴
+    node.xpath(".//hp:fieldBegin[@type='CLICK_HERE']", "hp" => detect_namespace(node)).each do |field_begin|
+      field_name = field_begin["name"]
+      next unless values.key?(field_name)
+
+      # fieldBegin 다음 형제 노드들을 순회하며 hp:t 텍스트를 찾아 교체
+      sibling = field_begin.next_sibling
+      while sibling
+        if sibling.name == "fieldEnd"
+          break
+        elsif sibling.name == "t"
+          sibling.content = values[field_name]
+          break
         else
-          t_elem.content = "금   액  : #{replacements[:amount]}"
+          # 중첩된 노드 내부의 hp:t 검색
+          t_elem = sibling.at_xpath(".//hp:t", "hp" => detect_namespace(node))
+          if t_elem
+            t_elem.content = values[field_name]
+            break
+          end
         end
-      elsif text.strip.start_with?("지출처")
-        t_elem.content = "지출처 : #{replacements[:merchant]}"
-      elsif text.strip.start_with?("계정과목")
-        t_elem.content = "계정과목 :  #{replacements[:category]}"
-      elsif text.include?(":") && text.include?("적") && text.include?("요")
-        t_elem.content = "적   요  :  #{replacements[:memo_desc]}"
-      elsif text.match?(/^\s*\d{4}\.\s*\d{1,2}\.\s*\d{1,2}\.\s*$/)
-        t_elem.content = replacements[:date]
+        sibling = sibling.next_sibling
       end
     end
+
+    # 부모 p 노드의 직접 자식으로 있는 경우도 처리
+    node.xpath(".//hp:p", "hp" => detect_namespace(node)).each do |para|
+      para.children.each do |child|
+        next unless child.element? && child.name == "fieldBegin" && child["type"] == "CLICK_HERE"
+
+        field_name = child["name"]
+        next unless values.key?(field_name)
+
+        # 같은 부모(run) 내의 다음 t 요소를 찾아 교체
+        current = child
+        while (current = current.next_sibling)
+          break if current.name == "fieldEnd"
+
+          t_nodes = if current.name == "t"
+            [current]
+          else
+            current.xpath(".//hp:t", "hp" => detect_namespace(node)).to_a
+          end
+
+          if t_nodes.any?
+            t_nodes.first.content = values[field_name]
+            break
+          end
+        end
+      end
+    end
+  end
+
+  def detect_namespace(node)
+    doc = node.is_a?(Nokogiri::XML::Document) ? node : node.document
+    ns = doc.root.namespaces
+    # hp 네임스페이스 찾기
+    ns.each do |prefix, uri|
+      return uri if prefix == "xmlns:hp" || uri.include?("hancom")
+    end
+    # 기본 네임스페이스
+    ns["xmlns"] || "http://www.hancom.co.kr/hwpml/2011/paragraph"
   end
 
   def repackage(temp_dir, output_path)
