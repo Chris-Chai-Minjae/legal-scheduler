@@ -20,9 +20,7 @@ class HwpxGeneratorService
   # 예: FileUtils.rm_f(result.output_path) if result.success
   def generate
     temp_dir = Dir.mktmpdir("hwpx_work")
-    output_file = Tempfile.new(["expense_report", ".hwpx"])
-    output_path = output_file.path
-    output_file.close
+    output_path = File.join(Dir.tmpdir, "expense_report_#{SecureRandom.hex(8)}.hwpx")
 
     # 1. Extract HWPX template
     extract_template(temp_dir)
