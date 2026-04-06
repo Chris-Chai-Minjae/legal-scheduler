@@ -32,11 +32,11 @@ module CardParsers
             foreign_currency = currency_col.present? && currency_col.match?(/\A[A-Z]{3}\z/) ? currency_col : "USD"
           end
         else
-          # 원화 금액이 없으면 외화 금액을 amount에 넣고 표시
-          amount = amt_fx
+          # 원화 금액이 없으면 외화 × 환율로 원화 환산
           foreign_amount = amt_fx
           currency_col = row[8].to_s.strip if row.length > 8
           foreign_currency = currency_col.present? && currency_col.match?(/\A[A-Z]{3}\z/) ? currency_col : "USD"
+          amount = (foreign_amount.to_f * BaseParser::DEFAULT_EXCHANGE_RATE).round
         end
 
         next if date.nil? || amount.nil?

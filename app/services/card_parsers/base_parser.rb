@@ -3,6 +3,7 @@
 module CardParsers
   class BaseParser
     EXCEL_EPOCH = Date.new(1899, 12, 30)
+    DEFAULT_EXCHANGE_RATE = 1450 # USD→KRW 기본 환율
 
     DATE_FORMATS = [
       "%Y-%m-%d %H:%M",
