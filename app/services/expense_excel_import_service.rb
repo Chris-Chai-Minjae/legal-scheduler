@@ -3,9 +3,12 @@ class ExpenseExcelImportService
     "거래일" => :transaction_date,
     "가맹점" => :merchant,
     "금액" => :amount,
+    "금액(원)" => :amount,
     "카드사" => :card_name,
     "카테고리" => :category,
+    "계정과목" => :category,
     "메모" => :memo,
+    "비고" => :memo,
     "적요" => :description
   }.freeze
 
@@ -152,8 +155,14 @@ class ExpenseExcelImportService
   def parse_amount(value)
     return 0 if value.blank?
 
+    str = value.to_s.strip
+    # "USD 100 (144,500원)" 형식 → 괄호 안의 원화 금액 추출
+    if (match = str.match(/\(([0-9,]+)원\)/))
+      return match[1].delete(",").to_i
+    end
+
     # 쉼표, 원, 공백, 통화기호 제거 (부호는 보존)
-    cleaned = value.to_s.gsub(/[,\s원₩\\]/, "")
+    cleaned = str.gsub(/[,\s원₩\\]/, "")
     cleaned.to_i
   end
 
