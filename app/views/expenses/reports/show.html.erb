@@ -1,5 +1,9 @@
 <%= content_for :title, @report.title %>
 
+<% if @report.pending? || @report.generating? %>
+  <meta http-equiv="refresh" content="3">
+<% end %>
+
 <style>
   .report-detail-container { max-width: 900px; margin: 0 auto; padding: 2rem; }
   .report-detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
