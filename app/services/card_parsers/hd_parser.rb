@@ -17,7 +17,7 @@ module CardParsers
     # 현대카드 xlsx 형식 (헤더가 9행 등에 위치)
     # 이용일, 카드번호, 가맹점명, 승인금액, 이용금액, 부가세, 관계, 할부, 상태, ...
     def parse_xlsx_format(header_row, header)
-      date_col = header.index { |h| h.include?("이용일") } || 0
+      date_col = header.index { |h| h.include?("이용일") || h.include?("거래일") } || 0
       merchant_col = header.index { |h| h.include?("가맹점명") } || 2
       amount_col = header.index { |h| h.include?("이용 금액") || h.include?("이용금액") } || header.index { |h| h.include?("승인 금액") || h.include?("승인금액") } || 3
       status_col = header.index { |h| h.include?("상태") }
@@ -89,7 +89,7 @@ module CardParsers
       (1..[15, @sheet.last_row].min).each do |row_num|
         row = row_values(row_num)&.map { |v| v.to_s.strip }
         next if row.nil?
-        if row.any? { |h| h.include?("이용일") } && row.any? { |h| h.include?("가맹점") }
+        if row.any? { |h| h.include?("이용일") || h.include?("거래일") } && row.any? { |h| h.include?("가맹점") }
           return [row_num, row]
         end
       end
