@@ -1,5 +1,9 @@
 <%= content_for :title, "카드 내역 상세" %>
 
+<% if @card_statement.pending? || @card_statement.parsing? || @card_statement.classifying? %>
+  <meta http-equiv="refresh" content="3">
+<% end %>
+
 <style>
   .detail-container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
   .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }

@@ -97,12 +97,11 @@ class ExpenseClassifierService
 
     request_body = {
       model: api_model,
+      system: SYSTEM_PROMPT,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: user_payload }
       ],
       temperature: 0.1,
-      response_format: { type: "json_object" },
       max_tokens: 100
     }
 
@@ -143,15 +142,15 @@ class ExpenseClassifierService
   private
 
   def api_url
-    ENV.fetch("DEEPSEEK_API_URL", "https://api.deepseek.com/chat/completions")
+    ENV.fetch("CLASSIFIER_API_URL", "https://api.anthropic.com/v1/messages")
   end
 
   def api_key
-    ENV.fetch("DEEPSEEK_API_KEY", "")
+    ENV.fetch("CLASSIFIER_API_KEY", "")
   end
 
   def api_model
-    ENV.fetch("DEEPSEEK_MODEL", "deepseek-chat")
+    ENV.fetch("CLASSIFIER_MODEL", "claude-haiku-4-5-20251001")
   end
 
   def make_request(body)
@@ -162,7 +161,8 @@ class ExpenseClassifierService
     http.open_timeout = TIMEOUT
 
     request = Net::HTTP::Post.new(uri)
-    request["Authorization"] = "Bearer #{api_key}"
+    request["x-api-key"] = api_key
+    request["anthropic-version"] = "2023-06-01"
     request["Content-Type"] = "application/json"
     request.body = body.to_json
 
@@ -179,8 +179,11 @@ class ExpenseClassifierService
 
   def parse_response(response_body)
     data = JSON.parse(response_body)
-    content = data.dig("choices", 0, "message", "content")
-    parsed = JSON.parse(content)
+    # Anthropic Messages API 응답 형식
+    content = data.dig("content", 0, "text")
+    # JSON 블록 추출 (마크다운 코드블록 안에 있을 수 있음)
+    json_str = content[/\{[^}]+\}/] || content
+    parsed = JSON.parse(json_str)
 
     category = parsed["category"]
     memo = parsed["memo"]
@@ -194,7 +197,7 @@ class ExpenseClassifierService
 
     { category: category, memo: memo.strip }
   rescue JSON::ParserError => e
-    Rails.logger.error("[ExpenseClassifierService] JSON 파싱 실패: #{e.message}")
+    Rails.logger.error("[ExpenseClassifierService] JSON 파싱 실패: #{e.message}, content: #{content}")
     FALLBACK.dup
   end
 end

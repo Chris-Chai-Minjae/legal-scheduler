@@ -23,15 +23,15 @@ module Expenses
     end
 
     def create
-      files = Array(params[:files]).reject(&:blank?)
+      uploaded_files = Array(params[:files]).reject(&:blank?)
 
-      if files.empty?
+      if uploaded_files.empty?
         redirect_to expenses_card_statements_path, alert: "Excel 파일을 선택해주세요."
         return
       end
 
       # Validate all files before processing
-      files.each do |file|
+      uploaded_files.each do |file|
         ext = File.extname(file.original_filename).downcase
         unless %w[.xlsx .xls].include?(ext)
           redirect_to expenses_card_statements_path, alert: "#{file.original_filename}: Excel 파일(.xlsx, .xls)만 업로드 가능합니다."
@@ -44,26 +44,25 @@ module Expenses
         end
       end
 
-      statements = []
-      files.each do |file|
-        statement = Current.session.user.card_statements.build(
-          filename: file.original_filename,
-          status: :pending
-        )
-        statement.file.attach(file)
-
-        if statement.save
-          CardStatementParseJob.perform_later(statement.id)
-          statements << statement
-        end
+      # 다중 파일을 하나의 통합 명세로 생성
+      filenames = uploaded_files.map(&:original_filename)
+      combined_name = if filenames.size == 1
+        filenames.first
+      else
+        "#{filenames.first} 외 #{filenames.size - 1}건"
       end
 
-      if statements.empty?
-        redirect_to expenses_card_statements_path, alert: "업로드에 실패했습니다."
-      elsif statements.size == 1
-        redirect_to expenses_card_statement_path(statements.first), notice: "파일이 업로드되었습니다. 파싱이 시작됩니다."
+      statement = Current.session.user.card_statements.new(
+        filename: combined_name,
+        status: :pending
+      )
+      statement.files.attach(uploaded_files)
+
+      if statement.save
+        CardStatementParseJob.perform_later(statement.id)
+        redirect_to expenses_card_statement_path(statement), notice: "#{uploaded_files.size}개 파일이 업로드되었습니다. 통합 파싱이 시작됩니다."
       else
-        redirect_to expenses_card_statements_path, notice: "#{statements.size}개 파일이 업로드되었습니다. 파싱이 시작됩니다."
+        redirect_to expenses_card_statements_path, alert: "업로드에 실패했습니다: #{statement.errors.full_messages.join(', ')}"
       end
     end
 

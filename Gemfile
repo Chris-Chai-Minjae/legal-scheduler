@@ -57,6 +57,9 @@ gem "prawn"
 
 # Excel file reading
 gem "roo", "~> 2.10"
+gem "roo-xls"
+# XML parsing for HWPX generation
+gem "nokogiri"
 # ZIP manipulation for HWPX
 gem "rubyzip", "~> 2.3"
 # CSV support (Ruby 4.0 준비)

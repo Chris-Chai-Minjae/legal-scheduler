@@ -3,12 +3,13 @@ class CardStatement < ApplicationRecord
   has_many :expenses, dependent: :destroy
   has_many :expense_reports, dependent: :nullify
   has_one_attached :file
+  has_many_attached :files
 
   enum :status, { pending: 0, parsing: 1, classifying: 2, completed: 3, failed: 4 }
 
   validates :filename, presence: true
   validates :status, presence: true
-  validate :file_content_type_valid, if: -> { file.attached? }
+  # content-type 검증은 컨트롤러에서 확장자 기반으로 수행 (브라우저 content-type은 불안정)
 
   STATUS_LABELS = {
     "pending" => "대기중",
@@ -41,6 +42,14 @@ class CardStatement < ApplicationRecord
     return unless file.attached?
     unless ALLOWED_CONTENT_TYPES.include?(file.content_type)
       errors.add(:file, "은(는) Excel 또는 CSV 파일만 허용됩니다")
+    end
+  end
+
+  def files_content_type_valid
+    files.each do |f|
+      unless ALLOWED_CONTENT_TYPES.include?(f.content_type)
+        errors.add(:files, "은(는) Excel 또는 CSV 파일만 허용됩니다")
+      end
     end
   end
 end

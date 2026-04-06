@@ -4,8 +4,8 @@ class ExpenseClassifyJob < ApplicationJob
   def perform(card_statement_id)
     statement = CardStatement.find(card_statement_id)
 
-    # Guard: 이미 완료되었거나 분류중인 경우 재실행 방지 (idempotency)
-    return if statement.completed? || statement.classifying?
+    # Guard: 완료된 statement만 재실행 방지 (classifying 상태에서 실패 후 재시도 허용)
+    return if statement.completed?
 
     statement.update!(status: :classifying)
 
