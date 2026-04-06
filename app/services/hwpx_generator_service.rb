@@ -7,24 +7,22 @@ require "fileutils"
 class HwpxGeneratorService
   TEMPLATE_PATH = Rails.root.join("app", "assets", "templates", "cost.hwpx")
 
-  # 누름틀(CLICK_HERE) 필드 이름
-  FIELD_NAMES = %w[date date2 amount merchant category memo].freeze
-
   Result = Data.define(:success, :output_path, :error)
 
   def initialize(expenses)
     @expenses = expenses
   end
 
-  # NOTE: 호출자(caller)는 사용 완료 후 output_path 파일을 반드시 삭제해야 합니다.
   def generate
+    return Result.new(success: false, output_path: nil, error: "경비 데이터가 없습니다") if @expenses.empty?
+
     temp_dir = Dir.mktmpdir("hwpx_work")
     output_path = File.join(Dir.tmpdir, "expense_report_#{SecureRandom.hex(8)}.hwpx")
 
     extract_template(temp_dir)
 
     xml_path = File.join(temp_dir, "Contents", "section0.xml")
-    modify_xml_with_fields(xml_path)
+    generate_pages(xml_path)
 
     repackage(temp_dir, output_path)
 
@@ -52,46 +50,66 @@ class HwpxGeneratorService
     end
   end
 
-  def modify_xml_with_fields(xml_path)
+  def generate_pages(xml_path)
     xml_content = File.read(xml_path)
+
+    # XML을 파싱해서 body 내 자식 노드들의 XML 문자열을 추출 (= 1페이지 템플릿)
     doc = Nokogiri::XML(xml_content)
-
-    # 템플릿의 body(root) 내 모든 자식 노드 = 1페이지 분량
     body = doc.root
-    template_children = body.children.to_a.dup
 
-    # 첫 번째 경비: 템플릿 자체의 누름틀 값 교체
-    if @expenses.any?
-      fill_fields(doc, build_field_values(@expenses.first))
-    end
+    # secPr (섹션 속성)은 마지막에 한 번만 있어야 함 — 분리
+    sec_pr = body.at_xpath("hp:secPr", "hp" => body.namespace&.href || body.namespaces.values.first)
+    sec_pr_xml = sec_pr&.to_xml || ""
+    sec_pr&.remove
 
-    # 2번째 경비부터: 템플릿 페이지를 복제하고 필드 값 교체
-    @expenses.drop(1).each do |expense|
-      values = build_field_values(expense)
+    # 나머지 = 페이지 템플릿
+    template_xml = body.children.to_xml
 
-      # 페이지 구분을 위해 첫 번째 paragraph에 pageBreak 설정
-      page_nodes = template_children.map(&:dup)
+    # body를 비우고 경비별 페이지 생성
+    body.children.each(&:remove)
 
-      first_para = page_nodes.find { |n| n.name == "p" }
-      first_para["pageBreak"] = "1" if first_para
+    @expenses.each_with_index do |expense, idx|
+      page_xml = fill_template(template_xml, expense)
 
-      # 누름틀 값 교체
-      page_nodes.each do |node|
-        fill_fields_in_node(node, values)
+      # 2번째 페이지부터 pageBreak 추가
+      if idx > 0
+        page_xml = page_xml.sub(/<hp:p /, '<hp:p pageBreak="1" ')
       end
 
-      # body에 추가
-      page_nodes.each { |node| body.add_child(node) }
+      # body에 추가 (XML 프래그먼트로 파싱)
+      fragment = Nokogiri::XML.fragment(page_xml)
+      fragment.children.each { |child| body.add_child(child) }
+    end
+
+    # secPr 복원 (마지막에)
+    if sec_pr_xml.present?
+      body.add_child(Nokogiri::XML.fragment(sec_pr_xml))
     end
 
     File.write(xml_path, doc.to_xml)
   end
 
+  def fill_template(template_xml, expense)
+    values = build_field_values(expense)
+    result = template_xml.dup
+
+    # 각 필드의 누름틀 값을 치환
+    # 패턴: <hp:fieldBegin ... name="date" ... type="CLICK_HERE" ...> 다음의 <hp:t>값</hp:t>
+    values.each do |field_name, value|
+      escaped_value = escape_xml(value)
+      pattern = /(name="#{Regexp.escape(field_name)}"[^>]*type="CLICK_HERE"|type="CLICK_HERE"[^>]*name="#{Regexp.escape(field_name)}")(.*?<hp:t>)(.*?)(<\/hp:t>)/m
+      result = result.gsub(pattern) do
+        "#{$1}#{$2}#{escaped_value}#{$4}"
+      end
+    end
+
+    result
+  end
+
   def build_field_values(expense)
     date = expense.transaction_date
-    date_str = "#{date.year}. #{date.month}. #{date.day}."
+    date_str = date ? "#{date.year}. #{date.month}. #{date.day}." : ""
 
-    # 비고(description)에서 적요 추출: "직원 식대(빅빅버거,비씨카드)" → "직원 식대"
     memo_desc = if expense.description.present?
       match = expense.description.match(/^(.*?)\(/)
       match ? match[1].strip : (expense.memo || "기타지출")
@@ -109,87 +127,18 @@ class HwpxGeneratorService
     }
   end
 
-  # XML 전체에서 누름틀 필드 값 교체
-  def fill_fields(doc, values)
-    fill_fields_in_node(doc.root, values)
-  end
-
-  # 특정 노드 내에서 누름틀 필드 값 교체
-  def fill_fields_in_node(node, values)
-    # hp:fieldBegin ... </hp:fieldBegin> [텍스트] <hp:fieldEnd/> 패턴
-    node.xpath(".//hp:fieldBegin[@type='CLICK_HERE']", "hp" => detect_namespace(node)).each do |field_begin|
-      field_name = field_begin["name"]
-      next unless values.key?(field_name)
-
-      # fieldBegin 다음 형제 노드들을 순회하며 hp:t 텍스트를 찾아 교체
-      sibling = field_begin.next_sibling
-      while sibling
-        if sibling.name == "fieldEnd"
-          break
-        elsif sibling.name == "t"
-          sibling.content = values[field_name]
-          break
-        else
-          # 중첩된 노드 내부의 hp:t 검색
-          t_elem = sibling.at_xpath(".//hp:t", "hp" => detect_namespace(node))
-          if t_elem
-            t_elem.content = values[field_name]
-            break
-          end
-        end
-        sibling = sibling.next_sibling
-      end
-    end
-
-    # 부모 p 노드의 직접 자식으로 있는 경우도 처리
-    node.xpath(".//hp:p", "hp" => detect_namespace(node)).each do |para|
-      para.children.each do |child|
-        next unless child.element? && child.name == "fieldBegin" && child["type"] == "CLICK_HERE"
-
-        field_name = child["name"]
-        next unless values.key?(field_name)
-
-        # 같은 부모(run) 내의 다음 t 요소를 찾아 교체
-        current = child
-        while (current = current.next_sibling)
-          break if current.name == "fieldEnd"
-
-          t_nodes = if current.name == "t"
-            [current]
-          else
-            current.xpath(".//hp:t", "hp" => detect_namespace(node)).to_a
-          end
-
-          if t_nodes.any?
-            t_nodes.first.content = values[field_name]
-            break
-          end
-        end
-      end
-    end
-  end
-
-  def detect_namespace(node)
-    doc = node.is_a?(Nokogiri::XML::Document) ? node : node.document
-    ns = doc.root.namespaces
-    # hp 네임스페이스 찾기
-    ns.each do |prefix, uri|
-      return uri if prefix == "xmlns:hp" || uri.include?("hancom")
-    end
-    # 기본 네임스페이스
-    ns["xmlns"] || "http://www.hancom.co.kr/hwpml/2011/paragraph"
+  def escape_xml(text)
+    text.to_s.encode(xml: :text)
   end
 
   def repackage(temp_dir, output_path)
     Zip::OutputStream.open(output_path) do |zos|
-      # mimetype must be first and STORED (not compressed)
       mimetype_path = File.join(temp_dir, "mimetype")
       if File.exist?(mimetype_path)
         zos.put_next_entry("mimetype", nil, nil, Zip::Entry::STORED)
         zos.write(File.read(mimetype_path))
       end
 
-      # All other files - DEFLATED
       Dir.glob(File.join(temp_dir, "**", "*")).each do |file_path|
         next if File.directory?(file_path)
         next if File.basename(file_path) == "mimetype"

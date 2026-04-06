@@ -13,16 +13,19 @@ class ExpenseReportGenerateJob < ApplicationJob
     result = HwpxGeneratorService.new(expenses).generate
 
     if result.success
-      File.open(result.output_path, "rb") do |file|
-        report.output_file.attach(
-          io: file,
-          filename: "#{report.title.parameterize(separator: '_')}.hwpx",
-          content_type: "application/hwp+zip"
-        )
+      begin
+        File.open(result.output_path, "rb") do |file|
+          report.output_file.attach(
+            io: file,
+            filename: "#{report.title.parameterize(separator: '_')}.hwpx",
+            content_type: "application/hwp+zip"
+          )
+        end
+        report.recalculate!
+        report.update!(status: :completed)
+      ensure
+        FileUtils.rm_f(result.output_path) if result.output_path
       end
-      FileUtils.rm_f(result.output_path)
-      report.recalculate!
-      report.update!(status: :completed)
     else
       report.update!(status: :failed, error_message: result.error&.truncate(500))
     end
