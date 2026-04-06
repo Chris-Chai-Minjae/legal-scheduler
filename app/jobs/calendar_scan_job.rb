@@ -43,7 +43,12 @@ class CalendarScanJob < ApplicationJob
     keywords = user.keywords.active.pluck(:name)
     matching_events = filter_events_by_keywords(events, keywords)
 
-    # 이미 처리된 일정 제외 (original_event_id로 체크)
+    # 변론기일이 지난 rejected/cancelled 일정 초기화 — 새 변론기일에 다시 제안 가능
+    user.schedules.where(status: [:rejected, :cancelled])
+                  .where("original_date < ?", Date.today)
+                  .destroy_all
+
+    # 이미 처리된 일정 제외 (original_event_id로 체크, 활성 상태만)
     existing_event_ids = user.schedules.pluck(:original_event_id).compact
     new_events = matching_events.reject { |e| existing_event_ids.include?(e[:id]) }
 
