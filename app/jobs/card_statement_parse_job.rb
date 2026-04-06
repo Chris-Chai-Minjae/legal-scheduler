@@ -8,9 +8,11 @@ class CardStatementParseJob < ApplicationJob
     return if statement.completed?
 
     statement.update!(status: :parsing)
+    # Idempotency: retry 시 중복 insert 방지
+    statement.expenses.delete_all
 
     # Guard: 파일 첨부 여부 확인
-    attachments = statement.files.any? ? statement.files : (statement.file.attached? ? [statement.file] : [])
+    attachments = statement.files.attached? ? statement.files : []
     if attachments.empty?
       statement.update!(status: :failed, error_message: "첨부된 파일이 없습니다")
       return

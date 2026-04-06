@@ -15,7 +15,7 @@ class ExpenseClassifierService
   MERCHANT_RULES = [
     { pattern: /지에스네트웍스|GS25|지에스25/i, category: "복리후생비", memo: "GS 편의점", remarks: "GS 편의점" },
     { pattern: /payco|페이코/i, category: "식비", memo: "식비", remarks: "식비" },
-    { pattern: /주유|충전소|오일스테이션|에너지/i, category: "교통비", memo: "차량주유비", remarks: "차량주유비" },
+    { pattern: /주유소?|충전소|오일스테이션|SK에너지|GS칼텍스/i, category: "교통비", memo: "차량주유비", remarks: "차량주유비" },
     { pattern: /삼성전자.{0,3}정기과금|삼성전자_정기과금/i, category: "보험료", memo: "삼성전자 보험료", remarks: "삼성전자 보험료" },
     { pattern: /주차/i, category: "교통비", memo: "주차료", remarks: "주차료" },
     { pattern: /매머드|매머드익스프레스|mammoth/i, category: "복리후생비", memo: "커피 구입", remarks: "커피 구입" },

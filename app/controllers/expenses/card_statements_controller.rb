@@ -38,6 +38,11 @@ module Expenses
           return
         end
 
+        if file.size.zero?
+          redirect_to expenses_card_statements_path, alert: "#{file.original_filename}: 빈 파일은 업로드할 수 없습니다."
+          return
+        end
+
         if file.size > 10.megabytes
           redirect_to expenses_card_statements_path, alert: "#{file.original_filename}: 파일 크기는 10MB 이하만 가능합니다."
           return

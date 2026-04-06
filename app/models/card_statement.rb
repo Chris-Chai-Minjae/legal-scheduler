@@ -2,7 +2,6 @@ class CardStatement < ApplicationRecord
   belongs_to :user
   has_many :expenses, dependent: :destroy
   has_many :expense_reports, dependent: :nullify
-  has_one_attached :file
   has_many_attached :files
 
   enum :status, { pending: 0, parsing: 1, classifying: 2, completed: 3, failed: 4 }
@@ -37,13 +36,6 @@ class CardStatement < ApplicationRecord
   end
 
   private
-
-  def file_content_type_valid
-    return unless file.attached?
-    unless ALLOWED_CONTENT_TYPES.include?(file.content_type)
-      errors.add(:file, "은(는) Excel 또는 CSV 파일만 허용됩니다")
-    end
-  end
 
   def files_content_type_valid
     files.each do |f|

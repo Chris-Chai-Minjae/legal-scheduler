@@ -68,12 +68,15 @@ class ExpenseClassifyJob < ApplicationJob
       end
     end
 
+    # Counter drift 방지: 실제 DB 값으로 재산정
+    statement.reload
+    actual_classified = statement.expenses.classified.count
+    statement.update!(classified_transactions: actual_classified)
+
     # 전체 실패 시 failed, 부분 실패 시 completed (로그에 실패 건수 기록)
     if failure_count == initial_count && initial_count > 0
-      statement.reload
       statement.update!(status: :failed, error_message: "전체 #{initial_count}건 분류 실패")
     else
-      statement.reload
       if failure_count > 0
         Rails.logger.warn("[ExpenseClassifyJob] Statement #{statement.id}: #{failure_count}/#{initial_count}건 분류 실패")
       end
