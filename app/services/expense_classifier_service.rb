@@ -22,6 +22,13 @@ class ExpenseClassifierService
     { pattern: /병원|의원|클리닉|약국|치과|한의원|정형외과|내과|외과|피부과|안과|이비인후과/i, category: "복리후생비", memo: "의료비", remarks: "의료비" },
     { pattern: /네이버페이|naverpay|쿠팡|11번가|옥션|지마켓|인터파크|위메프|티몬/i, category: "소모품구입비", memo: "소모품 구입비", remarks: "소모품 구입비" },
     { pattern: /유튜브|youtube|넷플릭스|netflix|디즈니플러스|왓챠|구독/i, category: "복리후생비", memo: "구독료", remarks: "구독료" },
+    # 일본 빌딩명 결제 → 식비 (빌딩 내 가게 결제)
+    { pattern: /BUILDING|ビル|빌딩/i, category: "식비", memo: "해외 식비", remarks: "해외 식비" },
+    # 해외 교통/항공 → 교통비로 통일
+    { pattern: /EAST JAPAN RAILWAY|JR EAST|RAILWAY|SUICA/i, category: "교통비", memo: "해외 교통비", remarks: "해외 교통비" },
+    { pattern: /JAPANICAN|KLOOK|AGODA|BOOKING\.COM/i, category: "교통비", memo: "해외 여행경비", remarks: "해외 여행경비" },
+    { pattern: /대한항공|BSP|KOREAN AIR|아시아나|ASIANA/i, category: "교통비", memo: "항공료", remarks: "항공료" },
+    { pattern: /한국도로공사|하이패스|HIPASS/i, category: "교통비", memo: "통행료", remarks: "통행료" },
   ].freeze
 
   # 제외 대상 — 비용회계에 포함하지 않는 거래
@@ -43,17 +50,20 @@ class ExpenseClassifierService
     5. 다른 설명이나 텍스트 추가 금지
 
     **분류 가이드:**
-    - 출장비: 숙박, 식대(출장 시)
+    - 출장비: 숙박비 (호텔, 숙박예약)
     - 소모품구입비: 사무용품, 청소용품, 소모성 물품, 온라인 구매
     - 임금: 급여, 상여금, 수당
     - 잡비: 분류 불가능한 기타 지출
     - 보험료: 4대보험, 손해보험, 정기과금 보험
     - 복리후생비: 직원 식사, 회식, 경조사, 편의점, 커피, 의료비, 구독료
-    - 관리비: 건물 관리비, 청소비, 경비비
-    - 임차료: 사무실/주거지 임대료
+    - 관리비: 건물 관리비, 청소비, 경비비 (해외 빌딩명 결제는 식비)
+    - 임차료: 사무실/주거지 임대료 (해외 빌딩명은 임차료 아님)
     - 통신비: 인터넷, 전화, 우편
-    - 교통비: 주유비, 주차료, 대중교통, 택시
-    - 식비: 음식 배달, 결제 플랫폼 식비
+    - 교통비: 주유비, 주차료, 대중교통, 택시, 항공료, 해외철도, 하이패스, 여행예약(Klook 등)
+    - 식비: 음식 배달, 결제 플랫폼 식비, 해외 음식점/편의점/카페
+
+    **중요:** "여비교통비"라는 카테고리는 없음. 해외 교통 관련은 모두 "교통비"로 분류할 것.
+    **중요:** 해외 빌딩명(BUILDING, ビル) 결제는 "관리비"나 "임차료"가 아니라 "식비"로 분류할 것.
   PROMPT
 
   FALLBACK = { category: "잡비", memo: "기타지출" }.freeze
