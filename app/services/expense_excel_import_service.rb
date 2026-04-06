@@ -158,8 +158,8 @@ class ExpenseExcelImportService
     return 0 if value.blank?
 
     str = value.to_s.strip
-    # "USD 100 (144,500원)" 형식 → 괄호 안의 원화 금액 추출
-    if (match = str.match(/\(([0-9,]+)원\)/))
+    # "USD 100 (144,500원)" 또는 "USD 100 (약 151,546원)" 형식 → 괄호 안의 원화 금액 추출
+    if (match = str.match(/\(약?\s*([0-9,]+)원\)/))
       return match[1].delete(",").to_i
     end
 
