@@ -62,6 +62,8 @@ class ExpenseExcelImportService
     spreadsheet = Roo::Spreadsheet.open(@file.tempfile, extension: File.extname(@file.original_filename).delete(".").to_sym)
     sheet = spreadsheet.sheet(0)
 
+    return [] if sheet.last_row.nil?
+
     headers = sheet.row(1).map(&:to_s).map(&:strip)
     rows = []
 

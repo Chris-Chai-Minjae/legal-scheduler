@@ -154,8 +154,12 @@ module Expenses
         classified_transactions: saved_expenses.size
       )
 
-      redirect_to new_expenses_report_path(card_statement_id: statement.id),
-        notice: "#{saved_expenses.size}건의 경비가 임포트되었습니다. 항목을 선택하여 지출결의서를 생성하세요."
+      failed_count = result.expenses.size - saved_expenses.size
+      msg = "#{saved_expenses.size}건의 경비가 임포트되었습니다."
+      msg += " (#{failed_count}건 저장 실패)" if failed_count > 0
+      msg += " 항목을 선택하여 지출결의서를 생성하세요."
+
+      redirect_to new_expenses_report_path(card_statement_id: statement.id), notice: msg
     end
   end
 end

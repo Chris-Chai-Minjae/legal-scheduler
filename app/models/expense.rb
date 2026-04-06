@@ -7,7 +7,7 @@ class Expense < ApplicationRecord
   enum :classification_status, { pending: 0, classified: 1, failed: 2, manual: 3 }
 
   validates :transaction_date, presence: true
-  validates :amount, presence: true, numericality: { only_integer: true, greater_than: 0 }
+  validates :amount, presence: true, numericality: { only_integer: true, other_than: 0 }
   validates :card_name, presence: true
   validates :classification_status, presence: true
   validates :category, inclusion: { in: CATEGORIES, message: "%{value}은(는) 유효한 카테고리가 아닙니다" },
