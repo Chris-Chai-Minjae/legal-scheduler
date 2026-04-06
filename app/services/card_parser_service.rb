@@ -18,7 +18,7 @@ class CardParserService
   end
 
   def parse
-    xlsx = Roo::Excelx.new(@file_path)
+    xlsx = Roo::Spreadsheet.open(@file_path)
     all_transactions = []
     card_summary = {}
     errors = []

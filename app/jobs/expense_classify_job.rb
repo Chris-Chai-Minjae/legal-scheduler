@@ -15,24 +15,47 @@ class ExpenseClassifyJob < ApplicationJob
 
     expenses.find_each do |expense|
       begin
-        result = ExpenseClassifierService.classify(
-          merchant: expense.merchant,
-          amount: expense.amount,
-          card_name: expense.card_name
-        )
+        # 규칙 기반 사전 분류 시도 — 매칭되면 AI 호출 스킵
+        rule_result = ExpenseClassifierService.rule_based_classify(merchant: expense.merchant)
 
-        description = ExpenseClassifierService.format_description(
-          result[:memo],
-          expense.merchant,
-          expense.card_name
-        )
+        if rule_result
+          result = rule_result
+          description = ExpenseClassifierService.format_description(
+            result[:memo],
+            expense.merchant,
+            expense.card_name
+          )
 
-        expense.update!(
-          category: result[:category],
-          memo: result[:memo],
-          description: description,
-          classification_status: :classified
-        )
+          expense.update!(
+            category: result[:category],
+            memo: result[:remarks] || result[:memo],
+            description: description,
+            classification_status: :classified
+          )
+        else
+          # AI 분류 (DeepSeek)
+          result = ExpenseClassifierService.classify(
+            merchant: expense.merchant,
+            amount: expense.amount,
+            card_name: expense.card_name
+          )
+
+          description = ExpenseClassifierService.format_description(
+            result[:memo],
+            expense.merchant,
+            expense.card_name
+          )
+
+          expense.update!(
+            category: result[:category],
+            memo: result[:memo],
+            description: description,
+            classification_status: :classified
+          )
+
+          # Rate limit: AI 호출 시에만 대기
+          sleep(0.1)
+        end
 
         # Atomic increment로 race condition 방지
         CardStatement.where(id: statement.id).update_all(
@@ -43,9 +66,6 @@ class ExpenseClassifyJob < ApplicationJob
         failure_count += 1
         Rails.logger.error("[ExpenseClassifyJob] 경비 #{expense.id} 분류 실패: #{e.message}")
       end
-
-      # Rate limit: brief pause between API calls
-      sleep(0.1)
     end
 
     # 전체 실패 시 failed, 부분 실패 시 completed (로그에 실패 건수 기록)

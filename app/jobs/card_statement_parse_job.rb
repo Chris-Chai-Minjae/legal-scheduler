@@ -16,7 +16,8 @@ class CardStatementParseJob < ApplicationJob
     end
 
     # Download attached file to temp location
-    temp_file = Tempfile.new(["card_statement", ".xlsx"])
+    ext = File.extname(statement.filename).downcase.presence || ".xlsx"
+    temp_file = Tempfile.new(["card_statement", ext])
     temp_file.binmode
     temp_file.write(statement.file.download)
     temp_file.rewind
@@ -28,6 +29,7 @@ class CardStatementParseJob < ApplicationJob
     if result.transactions.any?
       expense_records = result.transactions.filter_map do |t|
         next if t[:amount].blank? || t[:transaction_date].blank? || t[:card_name].blank?
+        next if ExpenseClassifierService.excluded?(t[:merchant])
 
         {
           card_statement_id: statement.id,

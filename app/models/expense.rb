@@ -2,7 +2,7 @@ class Expense < ApplicationRecord
   belongs_to :card_statement
   belongs_to :user
 
-  CATEGORIES = %w[출장비 소모품구입비 임금 잡비 보험료 복리후생비 관리비 임차료 통신비].freeze
+  CATEGORIES = %w[출장비 소모품구입비 임금 잡비 보험료 복리후생비 관리비 임차료 통신비 교통비 식비].freeze
 
   enum :classification_status, { pending: 0, classified: 1, failed: 2, manual: 3 }
 

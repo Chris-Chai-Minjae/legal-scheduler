@@ -12,14 +12,16 @@
   .upload-text { font-size: 1.1rem; color: #374151; margin-bottom: 0.5rem; }
   .upload-hint { font-size: 0.85rem; color: #9ca3af; }
   .file-input { display: none; }
-  .selected-file { display: none; align-items: center; gap: 1rem; padding: 1rem; background: #f0fdf4; border-radius: 8px; margin-bottom: 1.5rem; }
-  .selected-file.show { display: flex; }
-  .file-icon { font-size: 2rem; }
+  .selected-files { display: none; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .selected-files.show { display: flex; }
+  .selected-file-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; background: #f0fdf4; border-radius: 8px; }
+  .file-icon { font-size: 1.5rem; }
   .file-info { flex: 1; }
-  .file-name { font-weight: 600; color: #1f2937; }
-  .file-size { font-size: 0.85rem; color: #6b7280; }
-  .remove-file { background: none; border: none; font-size: 1.5rem; color: #9ca3af; cursor: pointer; }
-  .remove-file:hover { color: #ef4444; }
+  .file-name { font-weight: 600; color: #1f2937; font-size: 0.9rem; }
+  .file-size { font-size: 0.8rem; color: #6b7280; }
+  .file-count-badge { font-size: 0.85rem; color: #3b82f6; font-weight: 600; margin-bottom: 0.5rem; }
+  .remove-all-files { background: none; border: 1px solid #fca5a5; border-radius: 8px; padding: 0.4rem 0.8rem; color: #ef4444; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+  .remove-all-files:hover { background: #fef2f2; }
   .submit-btn { width: 100%; padding: 1rem 2rem; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
   .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59,130,246,0.3); }
   .submit-btn:disabled { background: #9ca3af; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -56,18 +58,17 @@
       <div class="upload-zone" id="upload-zone">
         <div class="upload-icon">📊</div>
         <div class="upload-text">카드 내역 Excel 파일을 드래그하거나 클릭하여 선택</div>
-        <div class="upload-hint">지원 형식: .xlsx (비씨, 국민, 현대, 신한, 하나카드)</div>
+        <div class="upload-hint">지원 형식: .xlsx, .xls · 여러 파일 동시 업로드 가능 (비씨, 국민, 현대, 신한, 하나카드)</div>
       </div>
 
-      <input type="file" name="file" id="file-input" class="file-input" accept=".xlsx,.xls">
+      <input type="file" name="files[]" id="file-input" class="file-input" accept=".xlsx,.xls" multiple>
 
-      <div class="selected-file" id="selected-file">
-        <span class="file-icon">📊</span>
-        <div class="file-info">
-          <div class="file-name" id="file-name">파일명</div>
-          <div class="file-size" id="file-size">0 KB</div>
+      <div class="selected-files" id="selected-files">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="file-count-badge" id="file-count-badge"></span>
+          <button type="button" class="remove-all-files" id="remove-all-files">전체 삭제</button>
         </div>
-        <button type="button" class="remove-file" id="remove-file">×</button>
+        <div id="file-list"></div>
       </div>
 
       <button type="submit" class="submit-btn" id="submit-btn" disabled>
@@ -115,10 +116,10 @@
   document.addEventListener('turbo:load', function() {
     const uploadZone = document.getElementById('upload-zone');
     const fileInput = document.getElementById('file-input');
-    const selectedFile = document.getElementById('selected-file');
-    const fileName = document.getElementById('file-name');
-    const fileSize = document.getElementById('file-size');
-    const removeFile = document.getElementById('remove-file');
+    const selectedFiles = document.getElementById('selected-files');
+    const fileCountBadge = document.getElementById('file-count-badge');
+    const fileList = document.getElementById('file-list');
+    const removeAllFiles = document.getElementById('remove-all-files');
     const submitBtn = document.getElementById('submit-btn');
 
     if (!uploadZone) return;
@@ -129,23 +130,40 @@
     uploadZone.addEventListener('drop', (e) => {
       e.preventDefault();
       uploadZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; updateFileInfo(e.dataTransfer.files[0]); }
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        updateFileList(e.dataTransfer.files);
+      }
     });
 
-    fileInput.addEventListener('change', (e) => { if (e.target.files.length) updateFileInfo(e.target.files[0]); });
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length) updateFileList(e.target.files); });
 
-    function updateFileInfo(file) {
-      fileName.textContent = file.name;
-      const size = file.size;
-      fileSize.textContent = size < 1024 ? size + ' B' : size < 1048576 ? (size/1024).toFixed(1) + ' KB' : (size/1048576).toFixed(1) + ' MB';
-      selectedFile.classList.add('show');
+    function formatSize(size) {
+      if (size < 1024) return size + ' B';
+      if (size < 1048576) return (size / 1024).toFixed(1) + ' KB';
+      return (size / 1048576).toFixed(1) + ' MB';
+    }
+
+    function updateFileList(files) {
+      fileList.innerHTML = '';
+      fileCountBadge.textContent = '📎 ' + files.length + '개 파일 선택됨';
+      for (let i = 0; i < files.length; i++) {
+        const item = document.createElement('div');
+        item.className = 'selected-file-item';
+        item.innerHTML = '<span class="file-icon">📊</span>' +
+          '<div class="file-info"><div class="file-name">' + files[i].name + '</div>' +
+          '<div class="file-size">' + formatSize(files[i].size) + '</div></div>';
+        fileList.appendChild(item);
+      }
+      selectedFiles.classList.add('show');
       uploadZone.style.display = 'none';
       submitBtn.disabled = false;
     }
 
-    removeFile.addEventListener('click', () => {
+    removeAllFiles.addEventListener('click', () => {
       fileInput.value = '';
-      selectedFile.classList.remove('show');
+      fileList.innerHTML = '';
+      selectedFiles.classList.remove('show');
       uploadZone.style.display = 'block';
       submitBtn.disabled = true;
     });

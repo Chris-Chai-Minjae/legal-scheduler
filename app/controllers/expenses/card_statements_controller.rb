@@ -23,36 +23,47 @@ module Expenses
     end
 
     def create
-      unless params[:file].present?
+      files = Array(params[:files]).reject(&:blank?)
+
+      if files.empty?
         redirect_to expenses_card_statements_path, alert: "Excel 파일을 선택해주세요."
         return
       end
 
-      file = params[:file]
-      ext = File.extname(file.original_filename).downcase
+      # Validate all files before processing
+      files.each do |file|
+        ext = File.extname(file.original_filename).downcase
+        unless %w[.xlsx .xls].include?(ext)
+          redirect_to expenses_card_statements_path, alert: "#{file.original_filename}: Excel 파일(.xlsx, .xls)만 업로드 가능합니다."
+          return
+        end
 
-      unless %w[.xlsx .xls].include?(ext)
-        redirect_to expenses_card_statements_path, alert: "Excel 파일(.xlsx, .xls)만 업로드 가능합니다."
-        return
+        if file.size > 10.megabytes
+          redirect_to expenses_card_statements_path, alert: "#{file.original_filename}: 파일 크기는 10MB 이하만 가능합니다."
+          return
+        end
       end
 
-      # P2 FIX: 파일 크기 제한 (10MB)
-      if file.size > 10.megabytes
-        redirect_to expenses_card_statements_path, alert: "파일 크기는 10MB 이하만 가능합니다."
-        return
+      statements = []
+      files.each do |file|
+        statement = Current.session.user.card_statements.build(
+          filename: file.original_filename,
+          status: :pending
+        )
+        statement.file.attach(file)
+
+        if statement.save
+          CardStatementParseJob.perform_later(statement.id)
+          statements << statement
+        end
       end
 
-      statement = Current.session.user.card_statements.build(
-        filename: file.original_filename,
-        status: :pending
-      )
-      statement.file.attach(file)
-
-      if statement.save
-        CardStatementParseJob.perform_later(statement.id)
-        redirect_to expenses_card_statement_path(statement), notice: "파일이 업로드되었습니다. 파싱이 시작됩니다."
-      else
+      if statements.empty?
         redirect_to expenses_card_statements_path, alert: "업로드에 실패했습니다."
+      elsif statements.size == 1
+        redirect_to expenses_card_statement_path(statements.first), notice: "파일이 업로드되었습니다. 파싱이 시작됩니다."
+      else
+        redirect_to expenses_card_statements_path, notice: "#{statements.size}개 파일이 업로드되었습니다. 파싱이 시작됩니다."
       end
     end
 
@@ -82,19 +93,20 @@ module Expenses
 
     def generate_csv(expenses)
       bom = "\xEF\xBB\xBF".force_encoding("UTF-8")
-      headers = %w[거래일 가맹점 금액 카드사 카테고리 메모 적요]
+      headers = %w[순번 거래일 가맹점 금액 카드사 계정과목 적요 비고]
 
       csv_string = CSV.generate do |csv|
         csv << headers
-        expenses.each do |expense|
+        expenses.each_with_index do |expense, idx|
           csv << [
+            idx + 1,
             expense.transaction_date&.strftime("%Y-%m-%d"),
             expense.merchant,
             expense.amount,
             expense.card_name,
             expense.category,
-            expense.memo,
-            expense.description
+            expense.description,
+            expense.memo
           ]
         end
       end
