@@ -114,6 +114,7 @@
             <th>카테고리</th>
             <th>메모</th>
             <th style="text-align: right">금액</th>
+            <th style="text-align: right">외화</th>
           </tr>
         </thead>
         <tbody>
@@ -125,6 +126,11 @@
               <td><span class="category-badge"><%= expense.category || "미분류" %></span></td>
               <td><%= expense.memo %></td>
               <td class="amount-cell"><%= expense.formatted_amount %></td>
+              <td class="amount-cell" style="color: #6b7280; font-size: 0.85rem;">
+                <% if expense.try(:foreign_currency).present? %>
+                  <%= expense.foreign_currency %> <%= number_with_delimiter(expense.foreign_amount) %>
+                <% end %>
+              </td>
             </tr>
           <% end %>
         </tbody>

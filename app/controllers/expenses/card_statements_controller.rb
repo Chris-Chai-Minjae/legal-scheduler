@@ -92,7 +92,7 @@ module Expenses
 
     def generate_csv(expenses)
       bom = "\xEF\xBB\xBF".force_encoding("UTF-8")
-      headers = %w[순번 거래일 가맹점 금액 카드사 계정과목 적요 비고]
+      headers = %w[순번 거래일 가맹점 금액(원) 외화금액 외화통화 카드사 계정과목 적요 비고]
 
       csv_string = CSV.generate do |csv|
         csv << headers
@@ -102,6 +102,8 @@ module Expenses
             expense.transaction_date&.strftime("%Y-%m-%d"),
             expense.merchant,
             expense.amount,
+            expense.try(:foreign_amount),
+            expense.try(:foreign_currency),
             expense.card_name,
             expense.category,
             expense.description,

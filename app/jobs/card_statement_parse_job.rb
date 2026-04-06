@@ -57,6 +57,8 @@ class CardStatementParseJob < ApplicationJob
           currency: t[:currency] || "KRW",
           card_name: t[:card_name],
           cancelled: t[:cancelled] || false,
+          foreign_amount: t[:foreign_amount],
+          foreign_currency: t[:foreign_currency],
           classification_status: 0,
           created_at: Time.current,
           updated_at: Time.current

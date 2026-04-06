@@ -20,14 +20,23 @@ module CardParsers
         amt_krw = parse_amount(row[5]) if row.length > 5
         amt_fx = parse_amount(row[6]) if row.length > 6
 
+        foreign_amount = nil
+        foreign_currency = nil
+
         if amt_krw.present? && amt_krw != 0
           amount = amt_krw
-          currency = "KRW"
+          # 해외결제인 경우 외화 금액도 기록
+          if amt_fx.present? && amt_fx != 0
+            foreign_amount = amt_fx
+            currency_col = row[8].to_s.strip if row.length > 8
+            foreign_currency = currency_col.present? && currency_col.match?(/\A[A-Z]{3}\z/) ? currency_col : "USD"
+          end
         else
+          # 원화 금액이 없으면 외화 금액을 amount에 넣고 표시
           amount = amt_fx
-          # TODO: Excel 시트에 통화 코드 열이 있으면 해당 값 사용 (현재 USD 하드코딩)
-          currency_col = row[7].to_s.strip if row.length > 7
-          currency = currency_col.present? && currency_col.match?(/\A[A-Z]{3}\z/) ? currency_col : "USD"
+          foreign_amount = amt_fx
+          currency_col = row[8].to_s.strip if row.length > 8
+          foreign_currency = currency_col.present? && currency_col.match?(/\A[A-Z]{3}\z/) ? currency_col : "USD"
         end
 
         next if date.nil? || amount.nil?
@@ -36,9 +45,11 @@ module CardParsers
           transaction_date: date,
           merchant: merchant,
           amount: amount,
-          currency: currency,
+          currency: "KRW",
           card_name: @card_name,
-          cancelled: false
+          cancelled: false,
+          foreign_amount: foreign_amount,
+          foreign_currency: foreign_currency
         }
       end
 
