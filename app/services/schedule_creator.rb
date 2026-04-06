@@ -195,45 +195,57 @@ class ScheduleCreator
       raise(ActiveRecord::RecordNotFound, "User has no work calendar configured")
   end
 
-  # REQ-SCHED-02: Format title as "[업무] {case_number} {case_name} 서면작성"
+  # Format title: "[당사자명] 법원-사건번호 서면작성"
+  # LBOX 형식: "[기후에너지환경부장관] 변론 | 서울고등법원-2025누8673 | 제1별관..."
   def format_title
+    party = extract_party_name
+    case_num = extract_full_case_number
+
     parts = ["[업무]"]
-    parts << extract_case_number if extract_case_number.present?
-    parts << extract_case_name if extract_case_name.present?
+    parts << "[#{party}]" if party.present?
+    parts << case_num if case_num.present?
     parts << "서면작성"
     parts.join(" ")
   end
 
-  # Extract case number from event summary or description
-  # Common formats: 2025나12345, 2025고합123, etc.
+  # Extract full case number including court name
+  # "서울고등법원-2025누8673" from LBOX format
+  def extract_full_case_number
+    @full_case_number ||= begin
+      text = "#{@event[:summary]} #{@event[:description]}"
+      # 법원명-사건번호 패턴: (법원명-)YYYY+한글+숫자
+      match = text.match(/([\w가-힣]*법원-?\d{4}[가-힣]+\d+)/)
+      if match
+        match[1]
+      else
+        # 법원명 없이 사건번호만
+        match = text.match(/(\d{4}[가-힣]+\d+)/)
+        match ? match[1] : nil
+      end
+    end
+  end
+
+  # Extract case number only (without court name)
   def extract_case_number
     @case_number ||= begin
       text = "#{@event[:summary]} #{@event[:description]}"
-      # Korean court case number pattern: YYYY + Korean particle + digits
       match = text.match(/(\d{4}[가-힣]+\d+)/)
       match ? match[1] : nil
     end
   end
 
-  # Extract case name from event summary
-  # Removes the case number and common keywords to get the case name
-  def extract_case_name
-    @case_name ||= begin
-      summary = @event[:summary].to_s.dup
-
-      # Remove case number if present
-      summary.gsub!(/\d{4}[가-힣]+\d+/, "")
-
-      # Remove common keywords
-      %w[변론 기일 재판 심리 검찰조사].each do |keyword|
-        summary.gsub!(keyword, "")
-      end
-
-      # Remove common brackets content (e.g., [법정1])
-      summary.gsub!(/\[.*?\]/, "")
-
-      # Clean up whitespace and return
-      summary.strip.presence
+  # Extract party name from [brackets] in LBOX title
+  # "[기후에너지환경부장관] 변론 | ..." → "기후에너지환경부장관"
+  def extract_party_name
+    @party_name ||= begin
+      summary = @event[:summary].to_s
+      match = summary.match(/\[([^\]]+)\]/)
+      match ? match[1].strip : nil
     end
+  end
+
+  # Extract case name (legacy — party name 없을 때 폴백)
+  def extract_case_name
+    extract_party_name
   end
 end
