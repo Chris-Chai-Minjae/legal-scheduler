@@ -19,6 +19,8 @@
   .btn-download:hover { background: #047857; }
   .btn-view { padding: 0.5rem 1rem; background: white; color: #3b82f6; border: 1px solid #3b82f6; border-radius: 8px; font-size: 0.85rem; font-weight: 500; text-decoration: none; }
   .btn-view:hover { background: #eff6ff; }
+  .btn-delete { padding: 0.5rem 1rem; background: white; color: #ef4444; border: 1px solid #ef4444; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; }
+  .btn-delete:hover { background: #fef2f2; }
   .history-badge { padding: 4px 12px; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
   .badge-pending { background: #fef3c7; color: #92400e; }
   .badge-generating { background: #dbeafe; color: #1e40af; }
@@ -56,6 +58,9 @@
             <% end %>
             <%= link_to expenses_report_path(report), class: "btn-view" do %>
               상세
+            <% end %>
+            <%= button_to expenses_report_path(report), method: :delete, class: "btn-delete", data: { turbo_confirm: "정말 삭제하시겠습니까?" } do %>
+              🗑️ 삭제
             <% end %>
           </div>
         </div>

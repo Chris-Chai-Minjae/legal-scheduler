@@ -75,6 +75,12 @@ module Expenses
       end
     end
 
+    def destroy
+      report = Current.session.user.expense_reports.find(params[:id])
+      report.destroy
+      redirect_to expenses_reports_path, notice: "지출결의서가 삭제되었습니다."
+    end
+
     def download
       report = Current.session.user.expense_reports.find(params[:id])
 

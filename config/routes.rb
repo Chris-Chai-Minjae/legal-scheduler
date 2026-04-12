@@ -102,7 +102,7 @@ Rails.application.routes.draw do
       end
     end
     resources :items, only: [:index, :show, :edit, :update]
-    resources :reports, only: [:index, :show, :new, :create] do
+    resources :reports, only: [:index, :show, :new, :create, :destroy] do
       member do
         get :download
       end
