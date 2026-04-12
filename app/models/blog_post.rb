@@ -8,8 +8,12 @@ class BlogPost < ApplicationRecord
 
   validates :title, presence: true
   validates :prompt, presence: true
+  validates :seo_score, numericality: { in: 0..100 }, allow_nil: true
+
+  before_validation :generate_slug, if: -> { slug.blank? && title.present? }
 
   scope :recent, -> { order(created_at: :desc) }
+  scope :by_seo_score, -> { where.not(seo_score: nil).order(seo_score: :desc) }
 
   def tone_name
     case tone
@@ -38,5 +42,50 @@ class BlogPost < ApplicationRecord
     when "published" then "🌐"
     else "📄"
     end
+  end
+
+  # SEO
+
+  def seo_grade
+    return nil if seo_score.nil?
+    case seo_score
+    when 80..100 then "A"
+    when 60..79  then "B"
+    when 40..59  then "C"
+    else              "D"
+    end
+  end
+
+  def seo_analyzed?
+    seo_details.present?
+  end
+
+  def seo_items
+    return [] unless seo_details
+    seo_details["items"] || []
+  end
+
+  # Images
+
+  def add_image(url:, alt: nil)
+    self.images = (images || []) + [{ "url" => url, "alt" => alt, "created_at" => Time.current.iso8601 }]
+    save!
+  end
+
+  def image_list
+    images || []
+  end
+
+  def has_images?
+    images.present? && images.any?
+  end
+
+  private
+
+  def generate_slug
+    # 한글 제목은 parameterize 시 거의 비어버리므로 random suffix 로 uniqueness 보장
+    base = title.to_s.parameterize.presence || "post"
+    base = base[0, 40] # 너무 긴 slug 방지
+    self.slug = "#{base}-#{SecureRandom.hex(4)}"
   end
 end

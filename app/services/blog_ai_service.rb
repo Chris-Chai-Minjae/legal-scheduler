@@ -11,9 +11,11 @@ require "json"
 # - BLOG_AI_API_URL: FastAPI 엔드포인트 (기본값: http://localhost:8000)
 # - BLOG_AI_API_KEY: API 인증 키
 class BlogAiService
-  API_URL = ENV.fetch("BLOG_AI_API_URL", "http://localhost:8000")
-  API_KEY = ENV.fetch("BLOG_AI_API_KEY", "default-api-key")
-  TIMEOUT = 30 # 초
+  # legal-scheduler 컨테이너의 기존 env 는 BLOG_AI_URL, blog-ai 스펙 문서는 BLOG_AI_API_URL
+  # 양쪽 모두 지원 + Docker network 기본값
+  API_URL = ENV["BLOG_AI_API_URL"] || ENV["BLOG_AI_URL"] || "http://blog-ai:8001"
+  API_KEY = ENV.fetch("BLOG_AI_API_KEY", "change_me_in_production")
+  TIMEOUT = 300 # 초 (이미지 2장 생성까지 최대 140초)
 
   # 블로그 글 생성 (SSE 스트리밍)
   #
@@ -21,17 +23,36 @@ class BlogAiService
   # @param tone [String] 톤 (professional, easy, storytelling)
   # @param length [String] 길이 (short, medium, long)
   # @param document_ids [Array<Integer>] 참고 문서 ID 리스트
+  # @param include_images [Boolean] 이미지 자동 생성 여부
+  # @param image_count [Integer] 이미지 개수 (0-4)
+  # @param image_preset [String] 이미지 카테고리 (auto/justice/documents/courthouse/abstract/library)
+  # @param image_style [String] 이미지 유형 (auto/symbol/infographic/code_card/process_icon)
+  # @param post_id [Integer, nil] BlogPost ID (이미지 저장 디렉터리 구분용)
   # @yield [String] SSE 스트림 청크
   # @return [void]
-  def self.generate(prompt:, tone:, length:, document_ids: [], &block)
-    uri = URI.join(API_URL, "/api/blog/generate")
+  def self.generate(
+    prompt:, tone:, length:,
+    document_ids: [],
+    include_images: true,
+    image_count: 2,
+    image_preset: "auto",
+    image_style: "auto",
+    post_id: nil,
+    &block
+  )
+    uri = URI.join(API_URL, "/api/generate")
 
     payload = {
       prompt: prompt,
       tone: tone,
       length: length,
-      document_ids: document_ids
+      document_ids: document_ids,
+      include_images: include_images,
+      image_count: image_count,
+      image_preset: image_preset,
+      image_style: image_style,
     }
+    payload[:post_id] = post_id if post_id
 
     stream_request(uri, payload, &block)
   end

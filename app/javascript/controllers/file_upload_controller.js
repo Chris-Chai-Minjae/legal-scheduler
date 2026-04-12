@@ -23,6 +23,14 @@ export default class extends Controller {
     this.files = []
   }
 
+  // Dropzone 클릭 → 숨겨진 file input 을 프로그래밍적으로 클릭 → 파일 탐색기 오픈
+  click(event) {
+    event.preventDefault()
+    if (this.hasInputTarget) {
+      this.inputTarget.click()
+    }
+  }
+
   dragover(event) {
     event.preventDefault()
     event.stopPropagation()

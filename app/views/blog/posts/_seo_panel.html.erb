@@ -1,0 +1,91 @@
+<div class="seo-panel-inner">
+  <h3 class="seo-panel-title">SEO 분석</h3>
+
+  <% if post.seo_analyzed? %>
+    <!-- 총점 -->
+    <div class="seo-score-circle">
+      <div class="seo-score-number <%= seo_score_class(post.seo_score) %>">
+        <%= post.seo_score %><span class="seo-score-total">/100</span>
+      </div>
+      <div class="seo-score-grade"><%= post.seo_grade %></div>
+    </div>
+
+    <!-- 카테고리별 섹션 -->
+    <% categories = { "keyword_optimization" => "키워드 최적화", "technical_seo" => "기술적 SEO", "bonus" => "보너스" } %>
+    <% categories.each do |cat_id, cat_name| %>
+      <div class="seo-category">
+        <h4 class="seo-category-title"><%= cat_name %></h4>
+        <% post.seo_items.select { |i| i["category"] == cat_id }.each do |item| %>
+          <div class="seo-item <%= item["status"] %>">
+            <div class="seo-item-header">
+              <span class="seo-item-name"><%= item["name"] %></span>
+              <span class="seo-item-score"><%= item["score"] %>/<%= item["max_score"] %></span>
+            </div>
+            <p class="seo-item-feedback"><%= item["feedback"] %></p>
+            <% if item["suggestion"] %>
+              <button class="btn btn-xs btn-primary seo-optimize-btn"
+                      data-action="click->seo-panel#optimize"
+                      data-seo-panel-item-param="<%= item["id"] %>">
+                최적화
+              </button>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- 전체 최적화 -->
+    <button class="btn btn-primary seo-optimize-all"
+            data-action="click->seo-panel#optimizeAll">
+      전체 최적화
+    </button>
+
+    <!-- 마지막 분석 시간 -->
+    <p class="seo-analyzed-at">
+      마지막 분석: <%= time_ago_in_words(post.seo_analyzed_at) %> 전
+    </p>
+  <% else %>
+    <!-- 미분석 상태 -->
+    <div class="seo-empty">
+      <p>아직 SEO 분석이 실행되지 않았습니다.</p>
+      <button class="btn btn-primary"
+              data-action="click->seo-panel#analyze"
+              data-seo-panel-target="analyzeBtn">
+        분석 실행
+      </button>
+    </div>
+  <% end %>
+
+  <!-- 재분석 버튼 (항상 표시) -->
+  <% if post.seo_analyzed? %>
+    <button class="btn btn-secondary seo-reanalyze"
+            data-action="click->seo-panel#analyze"
+            data-seo-panel-target="analyzeBtn">
+      재분석
+    </button>
+  <% end %>
+</div>
+
+<!-- 비교 모달 -->
+<div class="seo-modal" data-seo-panel-target="modal" style="display: none;">
+  <div class="seo-modal-overlay" data-action="click->seo-panel#closeModal"></div>
+  <div class="seo-modal-content">
+    <h3 data-seo-panel-target="modalTitle">최적화 제안</h3>
+    <div class="seo-comparison">
+      <div class="seo-comparison-before">
+        <h4>현재</h4>
+        <div data-seo-panel-target="modalBefore"></div>
+      </div>
+      <div class="seo-comparison-arrow">&rarr;</div>
+      <div class="seo-comparison-after">
+        <h4>제안</h4>
+        <div data-seo-panel-target="modalAfter"></div>
+      </div>
+    </div>
+    <p class="seo-reasoning" data-seo-panel-target="modalReasoning"></p>
+    <div class="seo-modal-actions">
+      <button class="btn btn-secondary" data-action="click->seo-panel#closeModal">취소</button>
+      <button class="btn btn-primary" data-action="click->seo-panel#applyOptimization">적용</button>
+    </div>
+  </div>
+</div>

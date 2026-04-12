@@ -77,9 +77,21 @@ Rails.application.routes.draw do
         post :regenerate
       end
       resources :chats, only: [:create], controller: "chats"
+      resource :seo, only: [], controller: "seo" do
+        post :analyze
+        post "optimize/:item", action: :optimize, as: :optimize
+        patch :apply
+      end
     end
     get "write", to: "posts#new", as: :write
     resources :documents, only: [:index, :create, :destroy]
+
+    # 생성 이미지 리버스 프록시 (blog-ai:8001 → Rails:3080)
+    # filename 에 dot 포함 허용 (기본 constraint 는 dot을 format 으로 해석)
+    get "images/:post_id/:filename",
+        to: "images#show",
+        as: :image,
+        constraints: { filename: /[A-Za-z0-9._\-]+/ }
   end
 
   # Expense Management (비용 회계 + 지출결의서)

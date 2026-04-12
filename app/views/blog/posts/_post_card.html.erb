@@ -2,7 +2,7 @@
 <%# @SPEC Phase 2 블로그 AI 목록 화면 %>
 
 <div class="blog-card" id="post_<%= post.id %>">
-  <%= link_to blog_post_path(post), style: "text-decoration: none; color: inherit;" do %>
+  <%= link_to blog_post_path(post), style: "text-decoration: none; color: inherit;", data: { turbo_frame: "_top" } do %>
     <div class="blog-card-header">
       <span class="blog-status-badge <%= post.status %>">
         <%= post.status_emoji %> <%= post.status_name %>
