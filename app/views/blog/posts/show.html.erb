@@ -77,12 +77,15 @@
 
     <!-- 이미지 갤러리 -->
     <% if @post.has_images? %>
-      <div class="section" style="margin-top: 24px;">
+      <div class="section" style="margin-top: 24px;" data-controller="image-lightbox">
         <h3 class="section-title">생성된 이미지</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 16px;">
           <% @post.image_list.each_with_index do |image, idx| %>
             <div class="generated-image-card" style="border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden;">
-              <img src="<%= image['url'] %>" alt="<%= image['alt'] || "이미지 #{idx + 1}" %>" style="width: 100%; height: 200px; object-fit: cover;">
+              <img src="<%= image['url'] %>" 
+                   alt="<%= image['alt'] || "이미지 #{idx + 1}" %>" 
+                   style="width: 100%; height: 200px; object-fit: cover;" 
+                   data-action="click->image-lightbox#openLightbox">
               <% if image['alt'].present? %>
                 <p style="padding: 12px; color: var(--gray-600); font-size: 14px; margin: 0;"><%= image['alt'] %></p>
               <% end %>

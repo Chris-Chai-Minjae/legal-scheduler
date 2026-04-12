@@ -264,11 +264,11 @@
 
   <%= form_with url: watermarks_path, method: :post, multipart: true, data: { turbo: false }, id: "watermark-form" do |f| %>
     <div class="upload-card">
-      <div class="upload-zone" id="upload-zone">
+      <label for="file-input" class="upload-zone" id="upload-zone">
         <div class="upload-icon">📁</div>
         <div class="upload-text">파일을 드래그하거나 클릭하여 선택</div>
         <div class="upload-hint">이미지 (JPG, PNG) 또는 PDF 파일</div>
-      </div>
+      </label>
 
       <input type="file" name="file" id="file-input" class="file-input"
              accept=".jpg,.jpeg,.png,.bmp,.webp,.pdf">
@@ -337,87 +337,101 @@
 </div>
 
 <script>
-  document.addEventListener('turbo:load', function() {
-    const uploadZone = document.getElementById('upload-zone');
-    const fileInput = document.getElementById('file-input');
-    const selectedFile = document.getElementById('selected-file');
-    const fileName = document.getElementById('file-name');
-    const fileSize = document.getElementById('file-size');
-    const fileIcon = document.getElementById('file-icon');
-    const removeFile = document.getElementById('remove-file');
-    const submitBtn = document.getElementById('submit-btn');
-    const opacityInput = document.getElementById('opacity-input');
-    const opacityValue = document.getElementById('opacity-value');
-    const scaleInput = document.getElementById('scale-input');
-    const scaleValue = document.getElementById('scale-value');
+  (function() {
+    let initialized = false;
 
-    // 드래그 앤 드롭
-    uploadZone.addEventListener('click', () => fileInput.click());
+    function initializeWatermarkUpload() {
+      if (initialized) return;
+      initialized = true;
 
-    uploadZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadZone.classList.add('dragover');
-    });
+      const uploadZone = document.getElementById('upload-zone');
+      const fileInput = document.getElementById('file-input');
+      const selectedFile = document.getElementById('selected-file');
+      const fileName = document.getElementById('file-name');
+      const fileSize = document.getElementById('file-size');
+      const fileIcon = document.getElementById('file-icon');
+      const removeFile = document.getElementById('remove-file');
+      const submitBtn = document.getElementById('submit-btn');
+      const opacityInput = document.getElementById('opacity-input');
+      const opacityValue = document.getElementById('opacity-value');
+      const scaleInput = document.getElementById('scale-input');
+      const scaleValue = document.getElementById('scale-value');
 
-    uploadZone.addEventListener('dragleave', () => {
-      uploadZone.classList.remove('dragover');
-    });
+      // 드래그 앤 드롭 - uploadZone을 label로 변경하여 click 중복 제거
+      uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+      });
 
-    uploadZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      uploadZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) {
-        fileInput.files = e.dataTransfer.files;
-        updateFileInfo(e.dataTransfer.files[0]);
+      uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+      });
+
+      uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          updateFileInfo(e.dataTransfer.files[0]);
+        }
+      });
+
+      // 파일 선택 - change 이벤트로만 처리
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+          updateFileInfo(e.target.files[0]);
+        }
+      });
+
+      // 파일 정보 업데이트
+      function updateFileInfo(file) {
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext === 'pdf') {
+          fileIcon.textContent = '📕';
+        } else {
+          fileIcon.textContent = '🖼️';
+        }
+
+        selectedFile.classList.add('show');
+        uploadZone.style.display = 'none';
+        submitBtn.disabled = false;
       }
-    });
 
-    // 파일 선택
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length) {
-        updateFileInfo(e.target.files[0]);
-      }
-    });
-
-    // 파일 정보 업데이트
-    function updateFileInfo(file) {
-      fileName.textContent = file.name;
-      fileSize.textContent = formatFileSize(file.size);
-
-      const ext = file.name.split('.').pop().toLowerCase();
-      if (ext === 'pdf') {
-        fileIcon.textContent = '📕';
-      } else {
-        fileIcon.textContent = '🖼️';
+      // 파일 크기 포맷
+      function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
       }
 
-      selectedFile.classList.add('show');
-      uploadZone.style.display = 'none';
-      submitBtn.disabled = false;
+      // 파일 제거
+      removeFile.addEventListener('click', () => {
+        fileInput.value = '';
+        selectedFile.classList.remove('show');
+        uploadZone.style.display = 'block';
+        submitBtn.disabled = true;
+      });
+
+      // 슬라이더 값 업데이트
+      opacityInput.addEventListener('input', () => {
+        opacityValue.textContent = opacityInput.value + '%';
+      });
+
+      scaleInput.addEventListener('input', () => {
+        scaleValue.textContent = scaleInput.value + '%';
+      });
     }
 
-    // 파일 크기 포맷
-    function formatFileSize(bytes) {
-      if (bytes < 1024) return bytes + ' B';
-      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    // Turbo 네비게이션 지원
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeWatermarkUpload);
+    } else {
+      initializeWatermarkUpload();
     }
 
-    // 파일 제거
-    removeFile.addEventListener('click', () => {
-      fileInput.value = '';
-      selectedFile.classList.remove('show');
-      uploadZone.style.display = 'block';
-      submitBtn.disabled = true;
-    });
-
-    // 슬라이더 값 업데이트
-    opacityInput.addEventListener('input', () => {
-      opacityValue.textContent = opacityInput.value + '%';
-    });
-
-    scaleInput.addEventListener('input', () => {
-      scaleValue.textContent = scaleInput.value + '%';
-    });
-  });
+    document.addEventListener('turbo:load', initializeWatermarkUpload);
+  })();
 </script>
