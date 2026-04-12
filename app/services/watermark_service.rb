@@ -58,7 +58,7 @@ class WatermarkService
     Rails.logger.error("[WatermarkService] Error: #{e.message}")
     Rails.logger.error(e.backtrace.first(5).join("\n"))
     cleanup_output_on_failure
-    { success: false, error: "파일 처리 중 오류가 발생했습니다." }
+    { success: false, error: "파일 처리 중 오류: #{e.class} - #{e.message}" }
   ensure
     cleanup_temp_files
   end
@@ -139,13 +139,13 @@ class WatermarkService
     x = (width - wm_width) / 2
     y = (height - wm_width * 0.5) / 2  # 대략적인 비율
 
-    Prawn::Document.new(page_size: [width, height], margin: 0) do |pdf|
-      pdf.transparent(opacity) do
-        pdf.image WATERMARK_IMAGE.to_s, at: [x, y + wm_width * 0.3], width: wm_width
+    prawn_doc = Prawn::Document.new(page_size: [width, height], margin: 0) do |doc|
+      doc.transparent(opacity) do
+        doc.image WATERMARK_IMAGE.to_s, at: [x, y + wm_width * 0.3], width: wm_width
       end
     end
 
-    CombinePDF.parse(pdf.render)
+    CombinePDF.parse(prawn_doc.render)
   end
 
   def calculate_position(img_width, img_height, wm_width, wm_height)
