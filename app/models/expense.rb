@@ -1,6 +1,7 @@
 class Expense < ApplicationRecord
   belongs_to :card_statement
   belongs_to :user
+  has_many :expense_report_items, dependent: :destroy
 
   CATEGORIES = %w[출장비 소모품구입비 임금 잡비 보험료 복리후생비 관리비 임차료 통신비 교통비 식비].freeze
 
