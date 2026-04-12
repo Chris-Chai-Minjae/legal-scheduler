@@ -59,16 +59,17 @@ export default class extends Controller {
       }
 
       await this.handleStream(response)
+      this.complete()
     } catch (error) {
       console.error("Streaming Error:", error)
       this.updateStatus("⚠️ 오류 발생")
+      this.isStreaming = false
     } finally {
-      // Safety timeout: if handleStream returned without calling complete(),
-      // ensure complete() fires within 5 seconds
+      // Safety timeout: stream ended but complete() never fired (edge case)
       if (this.isStreaming) {
         setTimeout(() => {
           if (this.isStreaming) {
-            console.warn("[Streaming] Safety timeout: forcing complete after stream ended")
+            console.warn("[Streaming] Safety timeout: forcing complete")
             this.complete()
           }
         }, 5000)
