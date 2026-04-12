@@ -24,7 +24,7 @@ class SchedulesController < ApplicationController
     when :pending
       @schedules = @schedules.pending_approval
     when :approved
-      @schedules = @schedules.approved
+      @schedules = @schedules.where(status: [:approved, :synced])
     when :rejected
       @schedules = @schedules.rejected
     when :cancelled
@@ -47,7 +47,7 @@ class SchedulesController < ApplicationController
     @status_counts = {
       all: all_schedules.count,
       pending: all_schedules.pending_approval.count,
-      approved: all_schedules.approved.count,
+      approved: all_schedules.where(status: [:approved, :synced]).count,
       rejected: all_schedules.rejected.count,
       synced: all_schedules.where(status: :synced).count,
       cancelled: all_schedules.cancelled.count
